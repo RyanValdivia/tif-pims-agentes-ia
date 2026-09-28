@@ -1,0 +1,12 @@
+# Salidas locales de prueba: se versionan solo las que se elijan como evidencia
+salidas/*
+!salidas/.gitkeep
+!salidas/README.md
+
+# Claude Code: configuración local personal
+.claude/settings.local.json
+
+# Sistema / editor
+.DS_Store
+Thumbs.db
+.vscode/
