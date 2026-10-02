@@ -23,8 +23,8 @@
 
 ### Caso 2 — Excel enviado a un tercero equivocado (`caso-02-correo-equivocado-colegio.md`)
 - Triaje: **brecha** de confidencialidad, FUG, datos de **menores** y deudas. Conocimiento: 30/09 a las 15:30 (no el envío del 29/09).
-- Severidad: alrededor de Media–Alta según el ajuste por menores y datos financieros.
-- Notificación: evaluar "gran número" (420) y los datos de deuda; ante la duda, **notificar a la ANPD**. Pedir confirmación escrita de la eliminación para valorar el art. 34.4.
+- Severidad: DPC 3 (deuda de pensión = dato financiero) +1 (menores) = 4 · EI 1 · CB 0,25 → **SE 4,25, Muy alta**. Sin el ajuste por menores: 3,25, Alta.
+- Notificación: evaluar "gran número" (420) y los datos de deuda; ante la duda, **notificar a la ANPD**. Comunicar a los apoderados: no hay confirmación escrita de la eliminación, así que no aplica el art. 34.4.
 - Lecciones: control 8.12 (prevención de fuga de datos), verificación del destinatario.
 
 ### Caso 3 — Laptop robada sin cifrado confirmado (`caso-03-laptop-robada-financiera.md`)

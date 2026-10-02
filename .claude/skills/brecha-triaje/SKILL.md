@@ -20,7 +20,7 @@ Lo que no esté: `NO INDICADO`. No inventes fechas, horas ni cantidades.
 
 ## Pasos
 1. **Registrar.** Asigna el ID `INC-<AAAAMMDD>-<slug>` (fecha de toma de conocimiento; si no se conoce, la fecha de hoy y márcalo). Crea la carpeta `salidas/<ID>/`.
-2. **Línea de tiempo.** Separa: fecha/hora de ocurrencia, de **toma de conocimiento** y de reporte. La toma de conocimiento inicia el plazo de **48 horas** (art. 34.1, D.S. 016-2024-JUS). Calcula y escribe la **hora límite**. Si falta la hora de conocimiento, ponlo como primera pregunta pendiente y avisa que el plazo ya podría estar corriendo.
+2. **Línea de tiempo.** Separa: fecha/hora de ocurrencia, de **toma de conocimiento** y de reporte. La toma de conocimiento inicia el plazo de **48 horas** (art. 34.1, D.S. 016-2024-JUS). Calcula y escribe la **hora límite** con el criterio de "¿Desde cuándo corren las 48 horas?" de `knowledge/marco-normativo-peru.md` (la lectura más temprana; la otra, como referencia). Si falta la hora de conocimiento, ponlo como primera pregunta pendiente y avisa que el plazo ya podría estar corriendo.
 3. **¿Evento, incidente o brecha?** Aplica el árbol de `knowledge/taxonomia-incidentes.md` (sección 3) y la definición del art. III num. 16 del reglamento (`knowledge/marco-normativo-peru.md`). Justifica en 1–2 líneas.
    - Si es **evento sin incidente**: registra, recomienda cierre y termina (no pasa a severidad).
    - Si es **incidente sin datos personales**: sigue el flujo ISO 27035 pero sin obligaciones de la Ley 29733.

@@ -32,6 +32,12 @@ Basta **uno**:
 
 > El reglamento no fija un umbral numérico para "grandes volúmenes" ni "gran número". La ANPD debe emitir lineamientos (art. 34.7 y Segunda Disposición Complementaria Final) `[VERIFICAR si ya se publicaron]`. Mientras tanto, el agente usa la metodología de `metodologia-severidad.md` como criterio de apoyo y, **ante la duda, recomienda notificar**.
 
+### ¿Desde cuándo corren las 48 horas?
+El art. 34.1 dice "posteriores a haber tomado conocimiento o constancia de ello", pero no precisa **quién** debe conocerlo. Criterio prudente del proyecto `[VERIFICAR con lineamientos ANPD o asesoría legal]`:
+- Cuenta el primer momento en que **cualquier persona de la organización** (no solo el Oficial de Datos Personales) supo con certeza razonable que hubo un incidente. Ej.: el trabajador al que le robaron la laptop, no el reenvío posterior a su jefe.
+- Una **alerta sin revisar** (ej. un antivirus) no es por sí sola toma de conocimiento, pero se registra; si la organización debió atenderla, anótalo como riesgo de una lectura más estricta.
+- Si hay dos lecturas posibles, se calcula la hora límite con la **más temprana** y se deja la otra como referencia.
+
 ### Contenido mínimo de la notificación a la ANPD (art. 34.2)
 1. Naturaleza del incidente; cuando sea posible, tipos de datos y número aproximado de titulares afectados.
 2. Nombre y datos de contacto del Oficial de Datos Personales u otro punto de contacto.
