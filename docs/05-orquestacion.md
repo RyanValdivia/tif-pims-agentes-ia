@@ -6,36 +6,44 @@
 
 | Nivel | Mecanismo | Qué automatiza |
 |---|---|---|
-| 1. Skill individual | Frase del usuario activa el skill | Una tarea |
-| 2. Agente | `pims-orquestador` decide y encadena skills | Flujo completo según la entrada |
-| 3. Comando | `/pims-analizar <entrada>` | Lanza el agente con un solo paso |
+| 1. Skill individual | Una frase del usuario activa el skill | Una fase (ej. solo la notificación) |
+| 2. Agente | `agente-incidentes-brechas` decide y encadena los skills | El ciclo completo según el tipo de incidente |
+| 3. Comando | `/gestionar-incidente <reporte>` | Lanza el agente en un solo paso |
 
 ## Reglas de enrutamiento
 
-| Entrada | Secuencia |
+| Resultado del triaje | Secuencia |
 |---|---|
-| Proceso o documento | `pims-inventario-datos` → (si hay señales de DPIA) `pims-dpia` → informe consolidado |
-| Solicitud de titular | `pims-derechos-arco` (consulta el RAT si existe) |
-| Solicitud que parece un incidente | ARCO + recomendación de escalar a gestión de brechas |
-| Ambigua | Una pregunta de aclaración |
+| Evento sin incidente | Ficha → informe breve → cierre |
+| Incidente sin datos personales | Ficha → respuesta y cierre (sin obligaciones de la Ley 29733) |
+| Brecha, se cumple el art. 34.1 | Ficha → severidad → **notificación** → respuesta y cierre → informe |
+| Brecha, no se cumple el art. 34.1 | Ficha → severidad → documentar (art. 35) → respuesta y cierre → informe |
+| Falta la hora de conocimiento | Una sola pregunta; si no hay respuesta, se continúa con la alerta como pendiente crítico |
 
 ## Traspaso de datos entre skills
-Los skills se comunican por **archivos** en `salidas/`:
+Los skills se comunican mediante **archivos** en la carpeta del incidente:
 
 ```
-inventario  ──►  salidas/rat-<slug>.md   ──►  dpia
-                                          └──►  arco (ubicar datos)
-todos       ──►  salidas/informe-<slug>.md
+salidas/INC-20260929-ransomware-clinica/
+├── 00-informe.md                 ◄── agente (resumen de todo)
+├── 01-ficha-incidente.md         ◄── triaje
+├── 02-evaluacion-severidad.md    ◄── severidad (lee 01)
+├── 03-notificacion-anpd.md       ◄── notificación (lee 01 y 02)
+├── 03-comunicacion-titulares.md
+├── 03-aviso-cnsd.md
+└── 04-respuesta-y-cierre.md      ◄── respuesta (lee todo)
 ```
 
-Ventajas: cada paso es auditable, se puede retomar un flujo a medias y el humano puede corregir el RAT antes de que el DPIA lo use.
+Ventajas: la carpeta **es** el registro que exige el art. 35, cada paso es auditable, un humano puede corregir la ficha antes de que la use la evaluación y el flujo se puede retomar a medias (ej. la notificación complementaria).
 
 ## Puntos de control humano
-1. Tras el RAT: el usuario puede corregir o completar información faltante.
-2. Tras el DPIA: decisión de aceptar / mitigar / evitar el riesgo.
-3. Antes de enviar cualquier respuesta a un titular.
+1. **Tras el triaje:** confirmar los hechos y la hora de conocimiento.
+2. **Tras la severidad:** decidir si se notifica.
+3. **Antes de enviar:** aprobar los borradores de notificación y comunicación.
+4. **Al cierre:** aprobar el informe de lecciones aprendidas.
 
 ## Automatizaciones futuras (fuera del alcance actual)
-- Ejecución programada de revisiones del RAT.
-- Conexión a un formulario o correo de solicitudes ARCO.
-- Alertas cuando venzan los plazos de atención.
+- Recibir reportes desde un buzón o formulario y abrir la ficha automáticamente.
+- Alertas cuando falten 12 h para la hora límite.
+- Conexión con el SIEM o el sistema de tickets para importar evidencia.
+- Tablero de incidentes abiertos y su estado.

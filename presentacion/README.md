@@ -1,31 +1,36 @@
 # Presentación y demo
 
-**Responsable: Compañero 3.**
+**Responsable: Integrante 4.** Cada integrante expone su parte.
 
 ## Estructura sugerida de diapositivas
-1. Portada y equipo
-2. Problema: la gestión de privacidad es manual y repetitiva
-3. PIMS, ISO/IEC 27701 y Ley 29733 en una lámina
-4. De prompt a skill (antes / después)
-5. Los 3 skills
-6. El agente orquestador y su flujo (diagrama de `README.md`)
-7. Demo en vivo
-8. Resultados de pruebas
-9. Limitaciones y trabajo futuro
-10. Conclusiones
+1. Portada y equipo (4 integrantes)
+2. Problema: cuando ocurre una brecha hay **48 horas** para notificar y el proceso es manual
+3. Marco normativo: D.S. 016-2024-JUS, arts. 34 a 36 (Integrante 2)
+4. Estándares: ciclo ISO/IEC 27035, controles ISO/IEC 27002, ISO/IEC 27701, NIST (Integrante 3)
+5. De prompt a skill: antes y después
+6. Los 4 skills, uno por fase del ciclo
+7. El agente y su flujo (diagrama del `README.md`)
+8. Severidad ENISA: un ejemplo calculado
+9. Demo en vivo
+10. Resultados de las pruebas (incluye el caso de control)
+11. Limitaciones y trabajo futuro
+12. Conclusiones
 
 ## Guion de demo (5 min)
-1. Mostrar `examples/entradas/proceso-matricula-academia.md` (30 s).
-2. Ejecutar `/pims-analizar examples/entradas/proceso-matricula-academia.md` (2 min).
-3. Abrir `salidas/rat-*.md` y `salidas/dpia-*.md`, señalar brechas y riesgos (1 min).
-4. Ejecutar la solicitud ARCO y mostrar el borrador de respuesta (1 min).
-5. Cierre: revisión humana obligatoria (30 s).
+1. Mostrar `examples/entradas/caso-01-ransomware-clinica.md` (30 s).
+2. Ejecutar `/gestionar-incidente examples/entradas/caso-01-ransomware-clinica.md` (2 min).
+3. Abrir `salidas/<ID>/00-informe.md`: hora límite, severidad y decisiones pendientes (1 min).
+4. Abrir `03-notificacion-anpd.md` y señalar los 4 elementos del art. 34.2 (30 s).
+5. Ejecutar el caso 4 (phishing bloqueado) y mostrar que **no** notifica (30 s).
+6. Cierre: todo es borrador, la decisión es humana (30 s).
 
 Tener una **grabación de respaldo** por si falla la demo en vivo.
 
 ## Preguntas que pueden hacer (todos deben poder responder)
+- ¿Qué diferencia hay entre evento, incidente y brecha?
+- ¿Desde cuándo corren las 48 horas?
+- ¿Por qué hay que notificar aunque el incidente ya se haya resuelto? (art. 34.1)
+- ¿Cómo se calcula la severidad y por qué no basta con ella para decidir?
 - ¿Qué diferencia hay entre un skill y un agente?
 - ¿Cómo evitan que la IA invente artículos o plazos?
-- ¿Qué pasa si el documento no dice la finalidad?
-- ¿Por qué el resultado es un borrador?
-- ¿Qué harían para llevarlo a una organización real?
+- ¿Por qué el agente no envía las notificaciones?

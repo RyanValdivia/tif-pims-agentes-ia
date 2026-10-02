@@ -2,8 +2,11 @@
 
 | ID | Fecha | Skill / agente | Entrada | Resultado esperado | Resultado obtenido | ¿Pasó? | Evidencia | Observaciones |
 |---|---|---|---|---|---|---|---|---|
-| PR-01 | | pims-inventario-datos | proceso-matricula-academia.md | RAT con sensibles, menores y brechas | | | | |
-| PR-02 | | pims-dpia | RAT de PR-01 | DPIA con riesgos puntuados | | | | |
-| PR-03 | | pims-derechos-arco | solicitud-arco-ejemplo.md | Clasificación, checklist y borrador de respuesta | | | | |
-| PR-04 | 2026-09-28 | pims-orquestador | proceso-matricula-academia.md | Flujo completo hasta informe | RAT (11 brechas, 7 altas), DPIA (2 críticos, 7 altos, 1 medio) e informe. Detectó todos los defectos sembrados | Sí | `evidencias/smoke-2026-09-28/` | Prueba de humo de Ryan (modo no interactivo). Repetir por Compañero 3 |
-| PR-05 | 2026-09-28 | pims-orquestador | solicitud-arco-ejemplo.md | Enruta a ARCO, no a inventario | Enrutó a ARCO: 6 derechos, plazos, checklist, 2 borradores, registro. No generó informe consolidado (el flujo no lo prevé para ARCO) | Sí | `evidencias/smoke-2026-09-28/` | Prueba de humo de Ryan. Repetir por Compañero 3 |
+| PR-01 | | agente-incidentes-brechas | caso-01-ransomware-clinica.md | Brecha P1, severidad Muy alta, notificación a la ANPD + titulares + CNSD, contención sin destruir evidencia | | | | |
+| PR-02 | | agente-incidentes-brechas | caso-02-correo-equivocado-colegio.md | Brecha FUG, menores, plazo desde el 30/09 15:30, recomienda notificar a la ANPD | | | | |
+| PR-03 | | agente-incidentes-brechas | caso-03-laptop-robada-financiera.md | Brecha FIS, ingresos = sensible → ANPD obligatoria; cifrado NO INDICADO | | | | |
+| PR-04 | | agente-incidentes-brechas | caso-04-phishing-bloqueado.md | Evento sin incidente; no pasa a notificación | | | | |
+| PR-05 | | brecha-triaje | Frase: "se nos perdió una USB con planillas" | Se activa sin nombrar el skill; pregunta la hora de conocimiento | | | | |
+| PR-06 | | brecha-evaluacion-severidad | Ficha de PR-02 | SE reproducible con la justificación | | | | |
+| PR-07 | | brecha-notificacion | Expediente de PR-01 | Cubre los 4 elementos del art. 34.2 | | | | |
+| PR-08 | | brecha-respuesta-cierre | Expediente de PR-03 | Causa raíz y controles ISO/IEC 27002 numerados | | | | |

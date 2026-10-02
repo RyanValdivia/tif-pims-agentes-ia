@@ -1,36 +1,45 @@
-# TIF — Skills y agente de IA para un PIMS
+# TIF — Agente de IA para la gestión de incidentes y brechas de datos personales
 
-Trabajo de Investigación Formativa (UNSA, Área de Sistemas): skills y un agente de IA que apoyan el **PIMS** (Sistema de Gestión de Privacidad de la Información, ISO/IEC 27701) bajo la **Ley N.° 29733** de Protección de Datos Personales del Perú.
+Trabajo de Investigación Formativa (UNSA, Área de Sistemas): skills y un agente de IA que apoyan el **PIMS** (Sistema de Gestión de Privacidad de la Información) en la **gestión de incidentes y brechas de datos personales**.
 
-> Todos los casos de ejemplo son **ficticios**. Los resultados son **borradores de apoyo** que debe validar un Oficial de Datos Personales.
+**Sustento normativo:**
+- **ISO/IEC 27035-1/-2:2023**: proceso de gestión de incidentes.
+- **ISO/IEC 27001 / 27002:2022**: controles 5.24 a 5.29 y 6.8.
+- **ISO/IEC 27701**: extensión de privacidad, notificación de brechas de PII.
+- **NIST SP 800-61 Rev. 3**: respuesta a incidentes.
+- **ISO/IEC 27037**: evidencia digital.
+- **ENISA**: severidad de brechas.
+- **Ley N.° 29733** y su Reglamento, **D.S. N.° 016-2024-JUS**, arts. 34 a 36: notificación en 48 horas.
+
+> Todos los casos son **ficticios**. Los resultados son **borradores de apoyo** que deben validar el Oficial de Datos Personales y el responsable de seguridad.
 
 ## Qué contiene
 
-| Componente | Qué hace | Ubicación |
-|---|---|---|
-| Skill `pims-inventario-datos` | Identifica datos personales y genera el RAT | `.claude/skills/pims-inventario-datos/` |
-| Skill `pims-dpia` | Evalúa riesgos de privacidad (DPIA) y propone controles | `.claude/skills/pims-dpia/` |
-| Skill `pims-derechos-arco` | Atiende solicitudes de derechos del titular | `.claude/skills/pims-derechos-arco/` |
-| Agente `pims-orquestador` | Decide qué skills usar, coordina el flujo e informa | `.claude/agents/pims-orquestador.md` |
-| Comando `/pims-analizar` | Lanza el flujo completo con un solo comando | `.claude/commands/pims-analizar.md` |
-| Base de conocimiento | Ley, mapa ISO 27701, escala de riesgos | `knowledge/` |
-| Casos de ejemplo | Entradas ficticias para probar | `examples/entradas/` |
+| Componente | Qué hace | Fase ISO/IEC 27035 | Ubicación |
+|---|---|---|---|
+| Skill `brecha-triaje` | ¿Evento, incidente o brecha? Clasifica, prioriza e inicia el reloj de 48 h | Detectar y reportar / Evaluar y decidir | `.claude/skills/brecha-triaje/` |
+| Skill `brecha-evaluacion-severidad` | Severidad para los titulares (ENISA) y decisión de notificar (art. 34) | Evaluar y decidir | `.claude/skills/brecha-evaluacion-severidad/` |
+| Skill `brecha-notificacion` | Borradores para la ANPD, los titulares y el CNSD | Responder | `.claude/skills/brecha-notificacion/` |
+| Skill `brecha-respuesta-cierre` | Contención, evidencia, recuperación, causa raíz y lecciones aprendidas | Responder / Aprender lecciones | `.claude/skills/brecha-respuesta-cierre/` |
+| Agente `agente-incidentes-brechas` | Coordina el ciclo completo y controla el plazo | Todo el ciclo | `.claude/agents/agente-incidentes-brechas.md` |
+| Comando `/gestionar-incidente` | Lanza el agente con un solo paso | — | `.claude/commands/gestionar-incidente.md` |
+| Base de conocimiento | Normativa peruana, estándares, severidad, taxonomía | — | `knowledge/` |
+| Casos de ejemplo | Ransomware, correo equivocado, laptop robada, phishing bloqueado | — | `examples/entradas/` |
 
-## Flujo del proyecto agéntico
+## Flujo del agente
 
 ```mermaid
 flowchart TD
-    A[Entrada] --> B{¿Qué es?}
-    B -->|Proceso o documento| C[pims-inventario-datos<br/>genera RAT]
-    C --> D{¿Señales de DPIA?}
-    D -->|Sí| E[pims-dpia<br/>evalúa riesgos]
-    D -->|No| F[Informe consolidado]
-    E --> F
-    B -->|Solicitud de un titular| G[pims-derechos-arco<br/>checklist y respuesta]
-    G -.->|ubica datos con el RAT| C
-    G --> H[Respuesta para revisión humana]
-    F --> I[Revisión del Oficial de Datos Personales]
-    H --> I
+    A[Reporte de evento] --> B[brecha-triaje<br/>ficha + reloj 48 h]
+    B -->|Evento sin incidente| Z[Registrar y cerrar]
+    B -->|Incidente sin datos personales| R
+    B -->|Brecha de datos personales| C[brecha-evaluacion-severidad<br/>SE = DPC × EI + CB]
+    C -->|Art. 34.1 se cumple| N[brecha-notificacion<br/>ANPD · titulares · CNSD]
+    C -->|Sin obligación| D[Documentar art. 35]
+    N --> R[brecha-respuesta-cierre<br/>contención · evidencia · lecciones]
+    D --> R
+    R --> I[Informe del incidente]
+    I --> H[Revisión humana:<br/>Oficial de Datos Personales]
 ```
 
 ## Cómo usarlo
@@ -38,24 +47,24 @@ flowchart TD
 Requiere [Claude Code](https://claude.com/claude-code). Abre una sesión en esta carpeta y usa:
 
 ```
-/pims-analizar examples/entradas/proceso-matricula-academia.md
-/pims-analizar examples/entradas/solicitud-arco-ejemplo.md
+/gestionar-incidente examples/entradas/caso-01-ransomware-clinica.md
+/gestionar-incidente examples/entradas/caso-04-phishing-bloqueado.md
 ```
 
-O invoca cada skill por separado, por ejemplo: *"Arma el RAT de examples/entradas/proceso-matricula-academia.md"*.
-Los resultados quedan en `salidas/`.
+También puedes invocar un skill por separado, por ejemplo: *"¿Esto es una brecha? Se nos perdió una USB con planillas"* o *"Redacta la notificación a la ANPD del incidente INC-20260929-ransomware-clinica"*.
+Los resultados quedan en `salidas/<ID-del-incidente>/`.
 
 ## Estructura del repositorio
 
 ```
 .
 ├── .claude/
-│   ├── skills/          # 3 skills (SKILL.md + plantilla)
-│   ├── agents/          # agente orquestador
-│   └── commands/        # comando /pims-analizar
-├── knowledge/           # base de conocimiento (Ley 29733, ISO 27701, riesgos)
-├── examples/entradas/   # casos ficticios de prueba
-├── salidas/             # resultados generados (no se versionan)
+│   ├── skills/          # 4 skills (SKILL.md + plantillas)
+│   ├── agents/          # agente de incidentes y brechas
+│   └── commands/        # comando /gestionar-incidente
+├── knowledge/           # normativa peruana, estándares ISO/NIST, severidad, taxonomía
+├── examples/entradas/   # 4 casos ficticios
+├── salidas/             # expedientes generados (no se versionan)
 ├── docs/                # documentación por etapa del TIF
 │   └── informe/         # informe final
 ├── pruebas/             # plan y evidencias de pruebas
@@ -74,10 +83,11 @@ Los resultados quedan en `salidas/`.
 | Proyecto agéntico | [docs/06-proyecto-agentico.md](docs/06-proyecto-agentico.md) |
 | Reparto del equipo | [docs/reparto-equipo.md](docs/reparto-equipo.md) |
 
-## Equipo
+## Equipo (4 integrantes)
 
 | Integrante | Rol |
 |---|---|
 | Ryan Valdivia | Skills, agente, orquestación e integración |
-| _Compañero 2_ | Investigación, base de conocimiento, marco teórico y conclusiones |
-| _Compañero 3_ | Pruebas, diapositivas, guion de demo y formato del informe |
+| _Integrante 2_ | Investigación normativa (Ley 29733, D.S. 016-2024-JUS) y marco teórico |
+| _Integrante 3_ | Investigación de estándares (ISO/IEC 27035, 27001/27002, 27701, NIST) y conclusiones |
+| _Integrante 4_ | Pruebas, diapositivas, guion de demo y formato del informe |

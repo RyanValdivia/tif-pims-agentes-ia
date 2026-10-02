@@ -6,44 +6,54 @@
 
 | Capa | Componentes |
 |---|---|
-| Conocimiento | `knowledge/` |
-| Skills | `pims-inventario-datos`, `pims-dpia`, `pims-derechos-arco` |
-| Agente | `pims-orquestador` |
-| Automatización | Comando `/pims-analizar` |
-| Casos de prueba | `examples/entradas/` |
-| Resultados | `salidas/` |
+| Conocimiento | `knowledge/` (D.S. 016-2024-JUS, ISO/IEC 27035/27002/27701, NIST SP 800-61r3, ENISA) |
+| Skills | `brecha-triaje`, `brecha-evaluacion-severidad`, `brecha-notificacion`, `brecha-respuesta-cierre` |
+| Agente | `agente-incidentes-brechas` |
+| Automatización | Comando `/gestionar-incidente` |
+| Casos de prueba | `examples/entradas/` (4 casos) |
+| Resultados | `salidas/<ID>/` |
 
-## Escenarios de demostración
+## Escenarios de demostración y resultado esperado
 
-### Escenario A — Análisis de un proceso
-```
-/pims-analizar examples/entradas/proceso-matricula-academia.md
-```
-Resultado esperado: RAT con datos sensibles y de menores señalados, brechas (casilla premarcada, contraseña compartida, sin plazo de conservación, transferencia a terceros, proveedor sin contrato), recomendación de DPIA, DPIA con riesgos puntuados, informe consolidado.
+### Caso 1 — Ransomware en una clínica (`caso-01-ransomware-clinica.md`)
+- Triaje: **brecha** de disponibilidad + probable confidencialidad (amenaza de publicación), categoría MAL, **P1**, entorno digital.
+- Severidad: DPC 4 (salud) · EI 1 · CB alta con intención maliciosa → **Muy alta**.
+- Notificación: **ANPD** (datos sensibles, gran número), **titulares** (perjuicio evidente) y **CNSD** (entorno digital). Hora límite 48 h desde el 29/09 a las 07:15.
+- Respuesta: aislar sin apagar, preservar memoria y disco, proteger el respaldo (estaba conectado), no recomendar el pago, señalar la alerta del antivirus no atendida como causa de proceso.
 
-### Escenario B — Solicitud de un titular
-```
-/pims-analizar examples/entradas/solicitud-arco-ejemplo.md
-```
-Resultado esperado: solicitud clasificada (información/acceso, cancelación, oposición y revocación del consentimiento para publicidad), verificación pendiente de identidad, plazos con advertencia de verificación, checklist interno, borrador de respuesta y sospecha de tratamiento sin consentimiento (comparte con terceros).
+### Caso 2 — Excel enviado a un tercero equivocado (`caso-02-correo-equivocado-colegio.md`)
+- Triaje: **brecha** de confidencialidad, FUG, datos de **menores** y deudas. Conocimiento: 30/09 a las 15:30 (no el envío del 29/09).
+- Severidad: alrededor de Media–Alta según el ajuste por menores y datos financieros.
+- Notificación: evaluar "gran número" (420) y los datos de deuda; ante la duda, **notificar a la ANPD**. Pedir confirmación escrita de la eliminación para valorar el art. 34.4.
+- Lecciones: control 8.12 (prevención de fuga de datos), verificación del destinatario.
+
+### Caso 3 — Laptop robada sin cifrado confirmado (`caso-03-laptop-robada-financiera.md`)
+- Triaje: brecha probable, FIS; el cifrado es `NO INDICADO`, por lo que se trata como no cifrada hasta confirmar.
+- Severidad: ingresos (dato **sensible** en Perú) → notificación a la ANPD obligatoria.
+- Respuesta: cerrar la sesión de correo remotamente, bloqueo y borrado remoto, revisar BitLocker en todo el parque. Controles 8.1, 8.24 y política de descarga de bases.
+
+### Caso 4 — Phishing bloqueado (`caso-04-phishing-bloqueado.md`) — **caso de control**
+- Triaje: **evento sin incidente**. No hubo clics ni vulneración. Se registra y se cierra.
+- No pasa a severidad ni a notificación. Valida que el agente **no sobrerreacciona**.
 
 ## Criterios de éxito
 
 | Criterio | Cómo se verifica |
 |---|---|
-| El flujo completo corre sin intervención intermedia | Escenario A |
-| Las salidas siguen las plantillas | Revisión contra `plantilla-*.md` |
-| No hay plazos o artículos inventados | Revisión manual, buscar `[VERIFICAR]` |
-| El agente enruta bien | Escenarios A y B llevan a caminos distintos |
-| Los hallazgos coinciden con los defectos sembrados en el caso | Comparar con la lista del Escenario A |
+| El agente enruta bien | Caso 4 se cierra en el triaje; casos 1 a 3 llegan a la notificación |
+| Calcula bien la hora límite | Caso 2: desde la toma de conocimiento, no desde el envío |
+| Notificaciones con el contenido mínimo del art. 34.2 | Tabla de verificación del skill de notificación |
+| Severidad reproducible | Dos integrantes recalculan SE con la justificación y obtienen el mismo nivel |
+| No hay plazos ni artículos inventados | Revisión contra `knowledge/marco-normativo-peru.md` |
+| No recomienda acciones que destruyan evidencia | Caso 1: no sugiere apagar ni formatear antes de preservar |
 
 ## Limitaciones
-- Base de conocimiento en borrador: requiere validación con las fuentes oficiales.
-- Analiza solo lo que dice el documento; no audita sistemas reales.
-- No sustituye al Oficial de Datos Personales ni asesoría legal.
-- Pruebas con casos ficticios.
+- La ANPD aún no fija umbrales para "gran volumen" ni "gran número" `[VERIFICAR lineamientos]`: el agente aplica el criterio prudente.
+- Las normas ISO son de pago: la numeración se tomó de las ediciones citadas y debe validarse.
+- Analiza solo lo que dice el reporte; no investiga sistemas reales ni accede a logs.
+- No sustituye al Oficial de Datos Personales, al equipo de TI ni a la asesoría legal.
 
 ## Trabajo futuro
-- Skill de gestión de brechas de seguridad.
-- Skill de revisión de contratos con encargados de tratamiento.
-- Integración con formularios o correo real.
+- Integración con el buzón de reportes y el sistema de tickets.
+- Alertas automáticas de vencimiento del plazo.
+- Skill de simulacros (ejercicios *tabletop*) basados en ISO/IEC 27035-2.
