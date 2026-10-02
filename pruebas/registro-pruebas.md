@@ -12,7 +12,6 @@ Evidencias de la corrida del 2026-10-01: `evidencias/2026-10-01-agente/<ID>/`. S
 | PR-06 | 2026-10-01 | brecha-evaluacion-severidad | Ficha de PR-02 (sin ver el cálculo anterior) | SE reproducible con la justificación | SE = 4 × 1 + 0,25 = 4,25 (Muy alta), igual que PR-02; misma decisión ANPD/titulares/CNSD | Sí | `evidencias/2026-10-01-skills-y-comando/PR-06-*` | Reproducible |
 | PR-07 | 2026-10-01 | brecha-notificacion | Ficha y severidad de PR-01 | Cubre los 4 elementos del art. 34.2 | ANPD con los 4 elementos (contacto del ODP como [COMPLETAR]), aviso a pacientes en lenguaje claro, aviso CNSD justificado | Sí | `evidencias/2026-10-01-skills-y-comando/PR-07-*` | |
 | PR-08 | 2026-10-01 | brecha-respuesta-cierre | Expediente de PR-03 (sin el 04) | Causa raíz y controles ISO/IEC 27002 numerados | Causa técnica/proceso/humana; 14 controles; marcó 4 acciones que afectan evidencia y ordenó preservar antes | Sí | `evidencias/2026-10-01-skills-y-comando/PR-08-*` | Propuso 6.7 y 7.9 (no estaban en knowledge/): se añadieron |
-
 | PR-09 | 2026-10-01 | /gestionar-incidente | caso-03-laptop-robada-financiera.md | El comando lanza el agente y aplica el criterio de inicio del plazo | Lanzó el agente; plazo desde el robo (01/10 21:00) citando el criterio de knowledge/. 7 archivos | Sí, con hallazgo | `evidencias/2026-10-01-skills-y-comando/PR-09-*` | El agente no sabía la hora actual: dijo "quedan < 24 h" con el plazo ya vencido. Se corrigió el comando |
 | PR-10 | 2026-10-01 | /gestionar-incidente con fecha del sistema | caso-02-correo-equivocado-colegio.md | Inserta la hora real y calcula el tiempo restante | Expandió "2026-10-01 23:30 (-0500)"; calculó 16 h 05 min restantes hasta el 02/10 15:30 | Sí | `evidencias/2026-10-01-skills-y-comando/PR-10-*` | La expansión se verificó tras recargar el comando en la sesión |
 
@@ -20,5 +19,5 @@ Evidencias de la corrida del 2026-10-01: `evidencias/2026-10-01-agente/<ID>/`. S
 - Ningún agente escribió fuera de `salidas/` (`git status` limpio).
 - Todos los archivos generados cierran con la advertencia de borrador.
 - Todos los artículos citados (34 a 36, 39, 46 a 48, 133) están en `knowledge/marco-normativo-peru.md`.
-- Todos los controles ISO/IEC 27002 citados están en `knowledge/estandares-incidentes.md`; el 8.23, que no figuraba, quedó marcado `[VERIFICAR]`.
+- Todos los controles ISO/IEC 27002 citados están en `knowledge/estandares-incidentes.md`; los que no figuraban (6.7, 7.9, 8.23) se verificaron y se añadieron.
 - Ninguno recomendó apagar o formatear antes de preservar la evidencia, ni pagar el rescate.
