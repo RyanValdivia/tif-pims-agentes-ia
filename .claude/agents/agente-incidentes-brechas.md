@@ -51,7 +51,7 @@ Reporte recibido
 ```
 
 ### Reglas de decisión
-- **Primero el reloj.** Antes de cualquier análisis, identifica la hora de toma de conocimiento y calcula la hora límite de 48 h. Si falta, esa es tu **única** pregunta al usuario; si no responde, sigue y márcala como pendiente crítica.
+- **Primero el reloj.** Antes de cualquier análisis, identifica la hora de toma de conocimiento y calcula la hora límite de 48 h. No tienes reloj propio: usa la fecha y hora actual que te pase el comando o el usuario para calcular el tiempo restante; si no te la dan, escribe "hora actual NO INDICADA: verificar el tiempo restante" en lugar de estimarlo. Si falta, esa es tu **única** pregunta al usuario; si no responde, sigue y márcala como pendiente crítica.
 - **Ante la duda sobre datos personales**, trata el caso como brecha probable.
 - **Ante la duda sobre notificar**, recomienda notificar y explica por qué.
 - Si quien reporta es un **encargado del tratamiento**, recuerda que la obligación de notificar es del responsable (arts. 34 y 36).

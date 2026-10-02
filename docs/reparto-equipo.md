@@ -1,4 +1,4 @@
-# Reparto del equipo (4 integrantes)
+# Reparto del equipo
 
 | Persona | Qué hace |
 |---|---|
@@ -32,7 +32,7 @@
 ### Ryan — Construcción
 - [x] Reorientar el proyecto a incidentes y brechas: skills, agente, comando, conocimiento y casos.
 - [x] Documentación de las etapas del TIF.
-- [ ] Prueba de humo de los 4 casos y ajustes.
+- [x] Pruebas PR-01 a PR-10 y ajustes.
 - [ ] Integrar el conocimiento validado por los integrantes 2 y 3.
 - [ ] Escribir `docs/informe/02-desarrollo.md` y `03-resultados.md`.
 - [ ] Sesión de 30 min para explicar el proyecto al equipo.

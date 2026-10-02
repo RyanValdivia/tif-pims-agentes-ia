@@ -83,11 +83,14 @@ Los resultados quedan en `salidas/<ID-del-incidente>/`.
 | Proyecto agéntico | [docs/06-proyecto-agentico.md](docs/06-proyecto-agentico.md) |
 | Reparto del equipo | [docs/reparto-equipo.md](docs/reparto-equipo.md) |
 
-## Equipo (4 integrantes)
+## Equipo
 
 | Integrante | Rol |
 |---|---|
-| Ryan Valdivia | Skills, agente, orquestación e integración |
-| _Integrante 2_ | Investigación normativa (Ley 29733, D.S. 016-2024-JUS) y marco teórico |
-| _Integrante 3_ | Investigación de estándares (ISO/IEC 27035, 27001/27002, 27701, NIST) y conclusiones |
-| _Integrante 4_ | Pruebas, diapositivas, guion de demo y formato del informe |
+| Huacani Jara, Denise Andrea | Ver `docs/reparto-equipo.md` |
+| Luque Condori, Luis Guillermo | Ver `docs/reparto-equipo.md` |
+| Mollo Chuquicaña, Dolly Yadhira | Ver `docs/reparto-equipo.md` |
+| Pacheco Palo, Fabiana Francinet | Ver `docs/reparto-equipo.md` |
+| Valdivia Segovia, Ryan Fabian | Skills, agente, orquestación e integración |
+
+Asignatura: Auditoría de Sistemas · Docente: Edward Vicente Zarate Carlos · Informe: [docs/informe/](docs/informe/)
