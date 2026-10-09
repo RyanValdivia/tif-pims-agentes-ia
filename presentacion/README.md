@@ -18,7 +18,7 @@
 
 ## Guion de demo (5 min)
 1. Mostrar `examples/entradas/caso-01-ransomware-clinica.md` (30 s).
-2. Ejecutar `/gestionar-incidente examples/entradas/caso-01-ransomware-clinica.md` (2 min).
+2. Ejecutar `/gestionar-incidente examples/entradas/caso-01-ransomware-clinica.md contexto: demo/clinica-san-gabriel` (2 min). Señalar que el agente cita logs (`archivo:línea`) y descubre la transferencia de 3,4 GB que el reporte no mencionaba.
 3. Abrir `salidas/<ID>/00-informe.md`: hora límite, severidad y decisiones pendientes (1 min).
 4. Abrir `03-notificacion-anpd.md` y señalar los 4 elementos del art. 34.2 (30 s).
 5. Ejecutar el caso 4 (phishing bloqueado) y mostrar que **no** notifica (30 s).

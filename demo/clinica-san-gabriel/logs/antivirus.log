@@ -1,0 +1,8 @@
+2026-09-28 18:00:02 PC-FACT-01 SCAN  scheduled quick scan completed, 0 threats
+2026-09-28 23:49:40 PC-FACT-01 EVENT office process winword.exe spawned powershell.exe -enc JABw...
+2026-09-28 23:50:03 PC-FACT-01 ALERT Trojan.Downloader.Macro detected in C:\Users\facturacion\AppData\Local\Temp\Factura_F001-48213.docm
+2026-09-28 23:50:04 PC-FACT-01 ACTION quarantine FAILED (file in use); alert sent to ti@clinicasangabriel.example
+2026-09-28 23:51:30 PC-FACT-01 EVENT powershell.exe connected to 198.51.100.77:443 (not categorized)
+2026-09-28 23:51:41 PC-FACT-01 WARN  real-time protection service stopped by process powershell.exe
+2026-09-29 07:20:12 SRV-HCE   ALERT Ransom.Lock.A files renamed to .lck (4 210 files in 6 min)
+2026-09-29 07:24:50 SRV-ARCH  ALERT Ransom.Lock.A files renamed to .lck (31 877 files)

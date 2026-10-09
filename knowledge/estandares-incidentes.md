@@ -42,7 +42,7 @@ Perú la adopta como **NTP-ISO/IEC 27001:2022**, citada en el art. 48.2 del regl
 | 8.13 | Copias de respaldo | `brecha-respuesta-cierre` (recuperación) |
 | 8.15 / 8.16 | Registro (logs) y monitoreo | `brecha-triaje`, `brecha-respuesta-cierre` (investigación) |
 
-Controles preventivos que suelen proponerse como lección aprendida: 5.15 control de acceso, 5.17 información de autenticación, 6.3 concienciación y formación, 6.7 trabajo remoto, 7.9 seguridad de activos fuera de las instalaciones, 8.1 dispositivos de usuario final, 8.5 autenticación segura, 8.7 protección contra malware, 8.12 prevención de fuga de datos, 8.23 filtrado web, 8.24 uso de criptografía.
+Controles preventivos que suelen proponerse como lección aprendida: 5.15 control de acceso, 5.17 información de autenticación, 6.3 concienciación y formación, 6.7 trabajo remoto, 7.9 seguridad de activos fuera de las instalaciones, 8.1 dispositivos de usuario final, 8.5 autenticación segura, 8.7 protección contra malware, 8.12 prevención de fuga de datos, 8.22 segregación de redes, 8.23 filtrado web, 8.24 uso de criptografía.
 
 ## 3. ISO/IEC 27701 — Extensión de privacidad (PIMS)
 Extiende ISO/IEC 27001/27002 para datos personales (PII).

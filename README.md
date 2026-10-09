@@ -25,6 +25,8 @@ Trabajo de Investigación Formativa (UNSA, Área de Sistemas): skills y un agent
 | Comando `/gestionar-incidente` | Lanza el agente con un solo paso | — | `.claude/commands/gestionar-incidente.md` |
 | Base de conocimiento | Normativa peruana, estándares, severidad, taxonomía | — | `knowledge/` |
 | Casos de ejemplo | Ransomware, correo equivocado, laptop robada, phishing bloqueado | — | `examples/entradas/` |
+| Proyecto de demo | Clínica San Gabriel (ficticia): inventario, logs, políticas y app HCE para que el agente verifique los hechos | — | `demo/clinica-san-gabriel/` |
+| Permisos | El agente solo escribe en `salidas/` | — | `.claude/settings.json` |
 
 ## Flujo del agente
 
@@ -51,6 +53,14 @@ Requiere [Claude Code](https://claude.com/claude-code). Abre una sesión en esta
 /gestionar-incidente examples/entradas/caso-04-phishing-bloqueado.md
 ```
 
+**Demo con proyecto** (el agente verifica el reporte contra inventario, logs y políticas de una clínica ficticia):
+
+```
+/gestionar-incidente examples/entradas/caso-01-ransomware-clinica.md contexto: demo/clinica-san-gabriel
+```
+
+Ver [demo/clinica-san-gabriel/README.md](demo/clinica-san-gabriel/README.md).
+
 También puedes invocar un skill por separado, por ejemplo: *"¿Esto es una brecha? Se nos perdió una USB con planillas"* o *"Redacta la notificación a la ANPD del incidente INC-20260929-ransomware-clinica"*.
 Los resultados quedan en `salidas/<ID-del-incidente>/`.
 
@@ -64,6 +74,7 @@ Los resultados quedan en `salidas/<ID-del-incidente>/`.
 │   └── commands/        # comando /gestionar-incidente
 ├── knowledge/           # normativa peruana, estándares ISO/NIST, severidad, taxonomía
 ├── examples/entradas/   # 4 casos ficticios
+├── demo/                # proyecto ficticio (clínica) con logs, inventario y app
 ├── salidas/             # expedientes generados (no se versionan)
 ├── docs/                # documentación por etapa del TIF
 │   └── informe/         # informe final
