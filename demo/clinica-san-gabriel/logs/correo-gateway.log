@@ -1,6 +1,0 @@
-2026-09-28T09:12:03-05:00 RECV from=boletines@salud-news.example to=admision@clinicasangabriel.example subj="Boletín semanal" attach=none verdict=clean
-2026-09-28T11:40:55-05:00 RECV from=proveedor@labmed.example to=ti@clinicasangabriel.example subj="Re: calibración" attach=pdf verdict=clean
-2026-09-28T16:20:31-05:00 RECV from=sunat-avisos@notificaciones-sunat.example to=facturacion@clinicasangabriel.example subj="Aviso" attach=none verdict=suspicious-domain delivered=yes
-2026-09-28T22:41:07-05:00 RECV from=cobranzas@proveedores-medicos.example to=facturacion@clinicasangabriel.example subj="Factura pendiente N° F001-48213 - ULTIMO AVISO" attach=Factura_F001-48213.docm verdict=unscanned-macro delivered=yes
-2026-09-28T22:41:07-05:00 WARN  policy=attachment-macro action=none reason="sandbox disabled for plan"
-2026-09-28T23:48:12-05:00 OPEN  user=facturacion@clinicasangabriel.example msgid=F001-48213 attach=Factura_F001-48213.docm client=PC-FACT-01
