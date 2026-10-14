@@ -1,34 +1,5 @@
 /* Metadatos de presentación: nada de esto altera lo que decide el agente. */
 
-export const EJEMPLOS = {
-  '01': { t: 'Ransomware en clínica', s: 'Salud · 18 000 pacientes', esp: 'Muy alta', tag: 'Con contexto' },
-  '02': { t: 'Correo equivocado', s: 'Colegio · menores', esp: 'Muy alta' },
-  '03': { t: 'Laptop robada', s: 'Cooperativa · datos financieros', esp: 'Alta' },
-  '04': { t: 'Phishing bloqueado', s: 'Municipalidad', esp: 'Sin incidente', tag: 'Control' },
-  '05': { t: 'Aviso del proveedor', s: 'Hosting · alumnos y menores', esp: 'Alta', tag: 'Encargado' },
-  '06': { t: 'Acceso indebido interno', s: 'Clínica · historias clínicas', esp: 'Muy alta' },
-  '07': { t: 'Bucket público', s: 'Tienda online · 9 500 clientes' },
-  '08': { t: 'Inyección SQL', s: 'Instituto · postulantes y menores' },
-  '09': { t: 'Exempleado se lleva la cartera', s: 'Distribuidora · clientes' },
-  '10': { t: 'Papeles botados', s: 'Centro de salud · VIH' },
-  '11': { t: 'Ataque DDoS', s: 'Municipalidad · sin datos', esp: 'Sin datos personales', tag: 'Control' },
-  '12': { t: 'Ransomware con respaldo', s: 'Estudio contable · 120 clientes', tag: 'Caso gris' },
-};
-
-/* Casos de la UNSA (escenarios simulados). El campo r es el resultado observado al ejecutarlos. */
-export const CTX_BASE = 'unsa-base';
-export const UNSA = {
-  'unsa-01': { c: 'unsa-ransomware', t: 'Ransomware en el Registro Académico', u: 'Oficina de TI · Centro de Cómputo', k: 'Ransomware' },
-  'unsa-02': { t: 'Correo masivo con datos de ingresantes', u: 'Oficina de Admisión', k: 'Fuga por correo' },
-  'unsa-03': { t: 'Laptop robada con fichas de psicología', u: 'Bienestar Universitario', k: 'Robo de equipo' },
-  'unsa-04': { t: 'Phishing a docentes, bloqueado', u: 'Oficina de TI', k: 'Control: evento' },
-  'unsa-05': { t: 'Aviso del proveedor del Campus Virtual', u: 'Campus Virtual', k: 'Encargado del tratamiento' },
-  'unsa-06': { c: 'unsa-admision', t: 'Portal de admisión: inyección SQL', u: 'Oficina de Admisión · Desarrollo', k: 'Ataque web' },
-  'unsa-07': { c: 'unsa-notas', t: 'Cambio indebido de notas', u: 'Registros Académicos', k: 'Alteración de datos' },
-  'unsa-08': { t: 'Planilla CAS en enlace público', u: 'Recursos Humanos', k: 'Exposición en la nube' },
-  'unsa-09': { t: 'DDoS en la matrícula en línea', u: 'Centro de Cómputo', k: 'Control: sin datos' },
-};
-
 export const ETAPAS = [
   { p: '01-', t: 'Triaje', f: 'Detectar y evaluar' },
   { p: '02-', t: 'Severidad', f: 'Evaluar y decidir' },

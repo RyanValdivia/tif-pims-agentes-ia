@@ -1,4 +1,5 @@
-// Servidor local sin dependencias: sirve la interfaz y lanza el agente con `claude -p`.
+// Servidor local sin dependencias nativas: sirve la interfaz y lanza el agente.
+// Proveedores soportados: Claude Code CLI, Google Gemini API, Groq API.
 // Uso: node web/server.js   (abre http://localhost:3000)
 const http = require('http');
 const fs = require('fs');
@@ -44,7 +45,8 @@ function expedienteInfo(id) {
   return { id, files, limite, clasif, sev, mtime: fs.existsSync(dir) ? fs.statSync(dir).mtimeMs : 0 };
 }
 
-function startJob({ reporte, contexto, ahora }) {
+// ---- startJobClaude: lanza el agente usando Claude Code CLI ----
+function startJobClaude({ reporte, contexto, ahora }) {
   const id = 'job' + Date.now();
   fs.mkdirSync(path.join(SALIDAS, '_entradas'), { recursive: true });
   const rel = `salidas/_entradas/${id}.md`;
@@ -100,6 +102,270 @@ function startJob({ reporte, contexto, ahora }) {
 }
 
 
+// ---- Multi-provider LLM: Gemini y Groq ----
+
+// Carga el system prompt del agente + skills desde el filesystem.
+function buildSystemPrompt() {
+  const strip = md => String(md || '').replace(/^---[\s\S]*?---\r?\n/, '');
+  const agentFile = path.join(ROOT, '.claude/agents/agente-incidentes-brechas.md');
+  let sys = fs.existsSync(agentFile) ? strip(read(agentFile)) : '';
+  const skillsDir = path.join(ROOT, '.claude/skills');
+  for (const d of ls(skillsDir).filter(x => x.isDirectory())) {
+    const sf = path.join(skillsDir, d.name, 'SKILL.md');
+    if (fs.existsSync(sf)) sys += `\n\n---\n## Skill: ${d.name}\n${strip(read(sf))}`;
+  }
+  return sys;
+}
+
+// Implementación de Glob sin dependencias externas.
+function llmGlobSync(pattern) {
+  const results = [];
+  const reStr = String(pattern || '')
+    .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+    .replace(/\*\*/g, '\x00')
+    .replace(/\*/g, '[^/]*')
+    .replace(/\x00/g, '.*')
+    .replace(/\?/g, '[^/]');
+  let re;
+  try { re = new RegExp(`^${reStr}$`); } catch { return results; }
+  function walk(dir, rel) {
+    if (results.length >= 300) return;
+    try {
+      for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+        if (e.name === 'node_modules' || e.name === '.git') continue;
+        const r = rel ? `${rel}/${e.name}` : e.name;
+        if (e.isDirectory()) walk(path.join(dir, e.name), r);
+        else if (re.test(r)) results.push(r);
+      }
+    } catch {}
+  }
+  walk(ROOT, '');
+  return results;
+}
+
+// Implementación de Grep sin dependencias externas.
+function llmGrepFiles(pattern, searchPath) {
+  const results = [];
+  let re;
+  try { re = new RegExp(pattern, 'im'); } catch { re = new RegExp(String(pattern || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'im'); }
+  function walk(dir) {
+    if (results.length >= 100) return;
+    try {
+      for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+        if (results.length >= 100) return;
+        if (e.name === 'node_modules' || e.name === '.git') continue;
+        const p = path.join(dir, e.name);
+        if (e.isDirectory()) walk(p);
+        else if (e.isFile()) {
+          try {
+            const lines = fs.readFileSync(p, 'utf8').split('\n');
+            lines.forEach((l, i) => {
+              if (results.length < 100 && re.test(l))
+                results.push(`${path.relative(ROOT, p).replace(/\\/g, '/')}:${i + 1}: ${l.slice(0, 200)}`);
+            });
+          } catch {}
+        }
+      }
+    } catch {}
+  }
+  const sp = searchPath ? path.resolve(ROOT, String(searchPath)) : ROOT;
+  if (sp.startsWith(ROOT) && fs.existsSync(sp)) walk(sp);
+  return results;
+}
+
+// Ejecuta una tool (Read/Write/Glob/Grep) en el filesystem local.
+function executeTool(name, input) {
+  try {
+    if (name === 'Read') {
+      const p = path.resolve(ROOT, String(input.file_path || ''));
+      if (!p.startsWith(ROOT)) return { error: 'Acceso denegado: ruta fuera del proyecto' };
+      if (!fs.existsSync(p)) return { error: `No existe: ${input.file_path}` };
+      if (fs.statSync(p).isDirectory()) return { error: `Es un directorio: ${input.file_path}` };
+      return { content: read(p).slice(0, 500000) };
+    }
+    if (name === 'Write') {
+      const p = path.resolve(ROOT, String(input.file_path || ''));
+      const salidas = path.join(ROOT, 'salidas');
+      if (!p.startsWith(salidas + path.sep)) return { error: 'Solo puede escribir dentro de salidas/' };
+      fs.mkdirSync(path.dirname(p), { recursive: true });
+      fs.writeFileSync(p, String(input.content || ''));
+      return { ok: true, bytes: String(input.content || '').length };
+    }
+    if (name === 'Glob') {
+      const files = llmGlobSync(String(input.pattern || ''));
+      return { files, count: files.length };
+    }
+    if (name === 'Grep') {
+      const matches = llmGrepFiles(String(input.pattern || ''), input.path ? String(input.path) : '');
+      return { matches, count: matches.length };
+    }
+    return { error: `Herramienta desconocida: ${name}` };
+  } catch (e) { return { error: String(e.message || e) }; }
+}
+
+// Emite un evento de progreso y detecta el ID del incidente.
+function makeNoteHandler(job) {
+  return (name, args) => {
+    const f = String(args?.file_path || args?.pattern || args?.path || '');
+    const short = f.replace(ROOT, '').replace(/\\/g, '/').replace(/^\//, '');
+    const verbo = { Read: 'Leyendo', Write: 'Escribiendo', Grep: 'Buscando', Glob: 'Listando' }[name] || name;
+    job.eventos.push({ t: Date.now() - job.start, texto: `${verbo} ${short}` });
+    if (name === 'Write') {
+      const m = (args?.file_path || '').match(/salidas\/(INC-[\w.-]+)\//);
+      if (m) job.incidente = m[1];
+    }
+  };
+}
+
+// Definición de tools para Gemini (formato Google GenAI).
+const TOOLS_GEMINI = [{
+  functionDeclarations: [
+    { name: 'Read', description: 'Lee un archivo del proyecto por su ruta relativa.', parameters: { type: 'OBJECT', properties: { file_path: { type: 'STRING', description: 'Ruta relativa desde la raíz del proyecto' } }, required: ['file_path'] } },
+    { name: 'Write', description: 'Escribe contenido en un archivo. Solo puede escribir dentro de salidas/.', parameters: { type: 'OBJECT', properties: { file_path: { type: 'STRING', description: 'Ruta relativa, debe empezar con salidas/' }, content: { type: 'STRING', description: 'Contenido completo del archivo a escribir' } }, required: ['file_path', 'content'] } },
+    { name: 'Glob', description: 'Lista archivos que coincidan con un patrón glob, ej: salidas/**/*.md', parameters: { type: 'OBJECT', properties: { pattern: { type: 'STRING', description: 'Patrón glob' } }, required: ['pattern'] } },
+    { name: 'Grep', description: 'Busca líneas que contengan un patrón en los archivos del proyecto.', parameters: { type: 'OBJECT', properties: { pattern: { type: 'STRING', description: 'Texto o regex a buscar' }, path: { type: 'STRING', description: 'Subcarpeta donde buscar (opcional)' } }, required: ['pattern'] } },
+  ]
+}];
+
+// Definición de tools para Groq/OpenAI (formato OpenAI).
+const TOOLS_GROQ = [
+  { type: 'function', function: { name: 'Read', description: 'Lee un archivo del proyecto por su ruta relativa.', parameters: { type: 'object', properties: { file_path: { type: 'string', description: 'Ruta relativa desde la raíz del proyecto' } }, required: ['file_path'] } } },
+  { type: 'function', function: { name: 'Write', description: 'Escribe contenido en un archivo. Solo puede escribir dentro de salidas/.', parameters: { type: 'object', properties: { file_path: { type: 'string', description: 'Ruta relativa, debe empezar con salidas/' }, content: { type: 'string', description: 'Contenido completo del archivo' } }, required: ['file_path', 'content'] } } },
+  { type: 'function', function: { name: 'Glob', description: 'Lista archivos que coincidan con un patrón glob.', parameters: { type: 'object', properties: { pattern: { type: 'string', description: 'Patrón glob, ej: salidas/**/*.md' } }, required: ['pattern'] } } },
+  { type: 'function', function: { name: 'Grep', description: 'Busca líneas que contengan un patrón en los archivos del proyecto.', parameters: { type: 'object', properties: { pattern: { type: 'string', description: 'Texto o regex a buscar' }, path: { type: 'string', description: 'Subcarpeta donde buscar (opcional)' } }, required: ['pattern'] } } },
+];
+
+// Agent loop para Google Gemini.
+async function runGeminiLoop({ job, apiKey, systemPrompt, userPrompt }) {
+  const { GoogleGenAI } = await import('@google/genai');
+  const ai = new GoogleGenAI({ apiKey });
+  const noteHandler = makeNoteHandler(job);
+  const contents = [{ role: 'user', parts: [{ text: userPrompt }] }];
+  let turns = 0;
+
+  while (turns++ < 40) {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents,
+      config: { systemInstruction: systemPrompt, tools: TOOLS_GEMINI }
+    });
+
+    const candidate = response.candidates?.[0];
+    if (!candidate?.content?.parts) throw new Error('Gemini no devolvió respuesta válida.');
+
+    // Añadir respuesta del modelo al historial
+    contents.push({ role: 'model', parts: candidate.content.parts });
+
+    // Separar partes: text vs function calls
+    const fcs = candidate.content.parts.filter(p => p.functionCall);
+    const textParts = candidate.content.parts.filter(p => p.text).map(p => p.text).join('');
+
+    if (!fcs.length) {
+      // Respuesta final (no hay más tool calls)
+      job.resultado = textParts;
+      break;
+    }
+
+    // Ejecutar tools y acumular respuestas
+    const toolParts = [];
+    for (const part of fcs) {
+      const fc = part.functionCall;
+      const args = fc.args || {};
+      noteHandler(fc.name, args);
+      const result = executeTool(fc.name, args);
+      toolParts.push({ functionResponse: { name: fc.name, response: result } });
+    }
+    contents.push({ role: 'user', parts: toolParts });
+  }
+  if (turns >= 40) job.resultado = (job.resultado || '') + '\n(Máximo de turnos alcanzado)';
+}
+
+// Agent loop para Groq (formato OpenAI-compatible).
+async function runGroqLoop({ job, apiKey, systemPrompt, userPrompt }) {
+  const Groq = (await import('groq-sdk')).default;
+  const groq = new Groq({ apiKey });
+  const noteHandler = makeNoteHandler(job);
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt }
+  ];
+  let turns = 0;
+
+  while (turns++ < 40) {
+    const completion = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages,
+      tools: TOOLS_GROQ,
+      tool_choice: 'auto',
+      max_tokens: 4096,
+    });
+
+    const msg = completion.choices?.[0]?.message;
+    if (!msg) throw new Error('Groq no devolvió respuesta válida.');
+    messages.push(msg);
+
+    if (!msg.tool_calls?.length) {
+      job.resultado = msg.content || '';
+      break;
+    }
+
+    for (const tc of msg.tool_calls) {
+      let args = {};
+      try { args = JSON.parse(tc.function.arguments || '{}'); } catch {}
+      noteHandler(tc.function.name, args);
+      const result = executeTool(tc.function.name, args);
+      messages.push({ role: 'tool', tool_call_id: tc.id, content: JSON.stringify(result) });
+    }
+  }
+  if (turns >= 40) job.resultado = (job.resultado || '') + '\n(Máximo de turnos alcanzado)';
+}
+
+// Lanza un job usando Gemini o Groq (sin CLI de Claude).
+function startJobLLM({ reporte, contexto, ahora }) {
+  const prov = proveedorActivo();
+  const id = 'job' + Date.now();
+  fs.mkdirSync(path.join(SALIDAS, '_entradas'), { recursive: true });
+  const rel = `salidas/_entradas/${id}.md`;
+  fs.writeFileSync(path.join(ROOT, rel), reporte);
+
+  const prompt = [
+    `Fecha y hora actual: ${ahora || nowStamp()}.`,
+    'Usa el agente agente-incidentes-brechas para gestionar este reporte de incidente:',
+    rel + ' (archivo temporal de entrada: NO uses su nombre como ID)',
+    contexto ? `contexto: ${contexto}` : '',
+    'Léelo primero. Calcula el tiempo restante hasta la hora límite de 48 h con la fecha actual. Sigue tu flujo (ciclo ISO/IEC 27035), guarda todo en salidas/<ID>/ con ID = INC-<AAAAMMDD de la fecha del incidente>-<slug corto>, y termina mostrando clasificación, severidad, hora límite y tiempo restante, decisiones humanas pendientes y rutas generadas.',
+  ].filter(Boolean).join('\n');
+
+  const job = { id, status: 'running', start: Date.now(), eventos: [], incidente: null, resultado: null, error: null };
+  jobs.set(id, job);
+  const provLabel = prov === 'gemini' ? 'Google Gemini (gemini-2.0-flash)' : 'Groq (llama-3.3-70b)';
+  job.eventos.push({ t: 0, texto: `Iniciando análisis con ${provLabel}…` });
+
+  const apiKey = prov === 'gemini' ? getApiKey('gemini_api_key') : getApiKey('groq_api_key');
+  if (!apiKey) {
+    job.status = 'error';
+    job.error = `No hay API key de ${prov === 'gemini' ? 'Gemini' : 'Groq'} configurada. Ve a Ajustes > Conexión.`;
+    job.fin = Date.now();
+    return job;
+  }
+
+  const systemPrompt = buildSystemPrompt();
+  const loopFn = prov === 'gemini' ? runGeminiLoop : runGroqLoop;
+  loopFn({ job, apiKey, systemPrompt, userPrompt: prompt })
+    .then(() => { job.status = 'done'; job.fin = Date.now(); })
+    .catch(e => { job.status = 'error'; job.error = traduceError(String(e.message || e)); job.fin = Date.now(); });
+
+  job.kill = () => { /* no child process to kill for LLM jobs */ };
+  return job;
+}
+
+// Dispatch: elige Claude o LLM según el proveedor activo.
+function startJob(opts) {
+  const p = proveedorActivo();
+  return (p === 'gemini' || p === 'groq') ? startJobLLM(opts) : startJobClaude(opts);
+}
+
+
 // ---- Contextos de organización: demo/ (incluidos) y contextos/ (subidos desde la interfaz)
 const CTX_DIRS = { demo: path.join(ROOT, 'demo'), contextos: path.join(ROOT, 'contextos') };
 const CTX_RE = /^(demo|contextos)\/[a-z0-9][a-z0-9-]{0,59}$/;
@@ -149,9 +415,32 @@ function guardaContexto(nombre, archivos) {
 }
 
 // ---- Credenciales: variables de entorno, archivo guardado desde la interfaz o sesión local de Claude Code
-const TIPOS = { api_key: 'ANTHROPIC_API_KEY', oauth_token: 'CLAUDE_CODE_OAUTH_TOKEN' };
+const TIPOS = {
+  api_key: 'ANTHROPIC_API_KEY',
+  oauth_token: 'CLAUDE_CODE_OAUTH_TOKEN',
+  gemini_api_key: 'GEMINI_API_KEY',
+  groq_api_key: 'GROQ_API_KEY',
+};
 const mask = v => (v ? v.slice(0, 8) + '…' + v.slice(-4) : '');
 function authGuardada() { try { return JSON.parse(read(AUTH_FILE)); } catch { return null; } }
+
+// Devuelve el proveedor activo basado en la credencial guardada o variables de entorno.
+function proveedorActivo() {
+  const g = authGuardada();
+  if (g && g.tipo === 'gemini_api_key' && g.valor) return 'gemini';
+  if (g && g.tipo === 'groq_api_key' && g.valor) return 'groq';
+  if (process.env.GEMINI_API_KEY) return 'gemini';
+  if (process.env.GROQ_API_KEY) return 'groq';
+  return 'claude';
+}
+
+// Obtiene la API key del proveedor especificado (guardada o desde env).
+function getApiKey(tipo) {
+  const g = authGuardada();
+  if (g && g.tipo === tipo && g.valor) return g.valor;
+  return process.env[TIPOS[tipo]] || null;
+}
+
 function authEnv() {
   const a = authGuardada();
   return a && TIPOS[a.tipo] && a.valor ? { [TIPOS[a.tipo]]: a.valor } : {};
@@ -180,39 +469,92 @@ let estadoCache = null;
 async function estado(fresh) {
   if (!fresh && estadoCache && Date.now() - estadoCache.t < 30000) return estadoCache.v;
   const g = authGuardada();
+  const prov = proveedorActivo();
   const v = {
+    proveedor: prov,
     claude: { ok: false, version: '', detalle: '' },
     sesion: { logueado: false, metodo: '', email: '' },
     credencial: g && TIPOS[g.tipo] ? { fuente: 'interfaz', tipo: g.tipo, valor: mask(g.valor) }
       : process.env.ANTHROPIC_API_KEY ? { fuente: 'entorno', tipo: 'api_key', valor: mask(process.env.ANTHROPIC_API_KEY) }
       : process.env.CLAUDE_CODE_OAUTH_TOKEN ? { fuente: 'entorno', tipo: 'oauth_token', valor: mask(process.env.CLAUDE_CODE_OAUTH_TOKEN) }
+      : process.env.GEMINI_API_KEY ? { fuente: 'entorno', tipo: 'gemini_api_key', valor: mask(process.env.GEMINI_API_KEY) }
+      : process.env.GROQ_API_KEY ? { fuente: 'entorno', tipo: 'groq_api_key', valor: mask(process.env.GROQ_API_KEY) }
       : { fuente: 'ninguna', tipo: '', valor: '' },
     agente: fs.existsSync(path.join(ROOT, '.claude/agents/agente-incidentes-brechas.md')),
     skills: ls(path.join(ROOT, '.claude/skills')).filter(d => d.isDirectory()).length,
     docker: fs.existsSync('/.dockerenv'),
   };
-  const ver = await corre(['--version'], { timeout: 10000 });
-  v.claude.ok = ver.code === 0 && /Claude Code/i.test(ver.out);
-  v.claude.version = ver.out.trim().slice(0, 40);
-  v.claude.detalle = v.claude.ok ? '' : (ver.err || ver.out || `código ${ver.code}`).trim().slice(0, 160);
-  if (v.claude.ok) {
-    const st = await corre(['auth', 'status'], { timeout: 10000 });
-    try { const j = JSON.parse(st.out); v.sesion = { logueado: !!j.loggedIn, metodo: j.authMethod || '', email: j.email || '' }; } catch { /* sin json */ }
+  // Solo comprobamos Claude Code si el proveedor es Claude
+  if (prov === 'claude') {
+    const ver = await corre(['--version'], { timeout: 10000 });
+    v.claude.ok = ver.code === 0 && /Claude Code/i.test(ver.out);
+    v.claude.version = ver.out.trim().slice(0, 40);
+    v.claude.detalle = v.claude.ok ? '' : (ver.err || ver.out || `código ${ver.code}`).trim().slice(0, 160);
+    if (v.claude.ok) {
+      const st = await corre(['auth', 'status'], { timeout: 10000 });
+      try { const j = JSON.parse(st.out); v.sesion = { logueado: !!j.loggedIn, metodo: j.authMethod || '', email: j.email || '' }; } catch { /* sin json */ }
+    }
+  } else {
+    // Con Gemini o Groq no necesitamos Claude Code
+    v.claude.ok = false;
+    v.claude.detalle = `Proveedor activo: ${prov} (Claude Code no requerido)`;
   }
   estadoCache = { t: Date.now(), v };
   return v;
 }
+
 async function probarConexion() {
+  const prov = proveedorActivo();
   const t0 = Date.now();
+
+  if (prov === 'gemini') {
+    const apiKey = getApiKey('gemini_api_key');
+    if (!apiKey) return { ok: false, ms: 0, mensaje: 'No hay API key de Gemini. Configúrala en Ajustes > Conexión.' };
+    try {
+      const { GoogleGenAI } = await import('@google/genai');
+      const ai = new GoogleGenAI({ apiKey });
+      const r = await ai.models.generateContent({
+        model: 'gemini-2.0-flash',
+        contents: [{ role: 'user', parts: [{ text: 'Responde solo con la palabra: ok' }] }]
+      });
+      const text = (r.candidates?.[0]?.content?.parts?.find(p => p.text)?.text || r.text?.() || '').trim();
+      const ok = /^ok$/i.test(text);
+      return { ok, ms: Date.now() - t0, mensaje: ok ? 'Conexión con Gemini correcta.' : `Respuesta inesperada: ${text.slice(0, 100)}` };
+    } catch (e) { return { ok: false, ms: Date.now() - t0, mensaje: traduceError(e.message) }; }
+  }
+
+  if (prov === 'groq') {
+    const apiKey = getApiKey('groq_api_key');
+    if (!apiKey) return { ok: false, ms: 0, mensaje: 'No hay API key de Groq. Configúrala en Ajustes > Conexión.' };
+    try {
+      const Groq = (await import('groq-sdk')).default;
+      const groq = new Groq({ apiKey });
+      const r = await groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: 'Responde solo con la palabra: ok' }],
+        max_tokens: 10,
+      });
+      const text = (r.choices?.[0]?.message?.content || '').trim();
+      const ok = /ok/i.test(text);
+      return { ok, ms: Date.now() - t0, mensaje: ok ? 'Conexión con Groq correcta.' : `Respuesta inesperada: ${text.slice(0, 100)}` };
+    } catch (e) { return { ok: false, ms: Date.now() - t0, mensaje: traduceError(e.message) }; }
+  }
+
+  // Claude (comportamiento original)
   const r = await corre(['-p', 'Responde solo con la palabra: ok', '--output-format', 'json', '--max-turns', '1'], { timeout: 60000 });
   let j = null; try { j = JSON.parse(r.out); } catch { /* texto plano */ }
   const ok = r.code === 0 && j && !j.is_error;
   return { ok, ms: Date.now() - t0, mensaje: ok ? 'Conexión correcta.' : traduceError((j && j.result) || r.err || r.out || `código ${r.code}`) };
 }
+
 function traduceError(t) {
   const x = String(t || '');
   if (/not logged in|please run \/login|invalid api key|authentication|unauthorized|401|oauth token|credit balance/i.test(x))
     return 'Claude Code no tiene credenciales válidas. Configure su API key o su token de suscripción en la sección Conexión. Detalle: ' + x.slice(0, 200);
+  if (/quota|rate.?limit|429|resource.?exhausted|too many requests/i.test(x))
+    return 'Límite de uso de la API alcanzado (cuota o rate limit). Espere unos minutos e intente de nuevo. Detalle: ' + x.slice(0, 200);
+  if (/api.?key.*(invalid|not.?valid)|invalid.?api.?key/i.test(x))
+    return 'API key inválida. Verifique la clave en Ajustes > Conexión. Detalle: ' + x.slice(0, 200);
   return x.slice(0, 400);
 }
 
@@ -272,7 +614,12 @@ http.createServer((req, res) => {
           const { tipo, valor } = JSON.parse(body || '{}');
           const v = String(valor || '').trim();
           if (!TIPOS[tipo]) return json(res, 400, { error: 'Tipo de credencial inválido.' });
-          if (!/^sk-ant-[\w-]{20,}$/.test(v)) return json(res, 400, { error: 'El valor no parece una credencial de Anthropic (debe empezar con sk-ant-).' });
+          if (v.length < 10) return json(res, 400, { error: 'La credencial es demasiado corta.' });
+          // Validación específica por tipo
+          if ((tipo === 'api_key' || tipo === 'oauth_token') && !/^sk-ant-/.test(v))
+            return json(res, 400, { error: 'La credencial de Anthropic debe empezar con sk-ant-.' });
+          if (tipo === 'groq_api_key' && !/^gsk_/.test(v))
+            return json(res, 400, { error: 'La API key de Groq debe empezar con gsk_.' });
           fs.mkdirSync(DATA, { recursive: true, mode: 0o700 });
           fs.writeFileSync(AUTH_FILE, JSON.stringify({ tipo, valor: v }), { mode: 0o600 });
           estadoCache = null;

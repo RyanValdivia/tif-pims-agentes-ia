@@ -1,8 +1,8 @@
-# Reporte de incidente — Oficina de Recursos Humanos, UNSA (ESCENARIO SIMULADO)
+# Reporte de incidente — Unidad de Recursos Humanos, UNSA (ESCENARIO SIMULADO)
 
-> ESCENARIO SIMULADO para fines académicos (TIF de Auditoría de Sistemas). Usa el contexto de la UNSA, pero el incidente, las personas, los sistemas y las cifras son inventados y no describen hechos reales de la universidad.
+> ESCENARIO SIMULADO para fines académicos (TIF de Auditoría de Sistemas). Los nombres de oficinas, los sistemas y las cifras públicas salen de fuentes públicas de la UNSA (ver `demo/unsa-base/FUENTES.md`). El incidente, las cifras internas, los controles y las personas son inventados y no describen hechos reales de la universidad.
 
-**De:** Jefe de Recursos Humanos
+**De:** Unidad de Recursos Humanos
 **Para:** Oficial de Datos Personales
 **Fecha del correo:** 2026-10-12, 15:45
 

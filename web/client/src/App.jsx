@@ -56,7 +56,12 @@ export default function App() {
   }, [pathname]);
 
   const oscuro = tema === 'dark' || (tema === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
-  const listo = !!estado && estado.claude.ok && (estado.sesion.logueado || estado.credencial.fuente !== 'ninguna');
+  const esLlmExterno = !!estado && (estado.proveedor === 'gemini' || estado.proveedor === 'groq');
+  const listo = !!estado && (
+    esLlmExterno
+      ? estado.credencial.fuente !== 'ninguna'
+      : estado.claude.ok && (estado.sesion.logueado || estado.credencial.fuente !== 'ninguna')
+  );
 
   async function lanzar() {
     setError('');
@@ -75,7 +80,11 @@ export default function App() {
       <main className="page">
         {estado && !listo && !pathname.startsWith('/ajustes') && (
           <div className="banner bad">
-            {!estado.claude.ok ? 'No se encontró Claude Code en este equipo.' : 'El agente aún no tiene credenciales para conectarse a Claude.'}
+            {esLlmExterno
+              ? `El agente no tiene API key de ${estado.proveedor === 'gemini' ? 'Gemini' : 'Groq'} configurada.`
+              : !estado.claude.ok
+                ? 'No se encontró Claude Code en este equipo.'
+                : 'El agente aún no tiene credenciales para conectarse a Claude.'}
             <button className="btn sm" onClick={() => nav('/ajustes/conexion')}>Configurar conexión</button>
           </div>
         )}

@@ -1,6 +1,6 @@
 # Despliegue detrás de Traefik + tinyauth (VPS de rvaldiviase.com).
 # Se copia como docker-compose.yml a ~/server-data/incidentes/ junto con el código.
-# Credencial: poner CLAUDE_CODE_OAUTH_TOKEN o ANTHROPIC_API_KEY en un .env de esa carpeta,
+# Credencial: poner GEMINI_API_KEY, GROQ_API_KEY, CLAUDE_CODE_OAUTH_TOKEN o ANTHROPIC_API_KEY en un .env de esa carpeta,
 # o pegarla en la página (Ajustes > Conexión). Sin tinyauth: el acceso es público (ver advertencias en el README del despliegue).
 services:
   agente:
@@ -9,6 +9,8 @@ services:
     container_name: incidentes-brechas
     restart: unless-stopped
     environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
       CLAUDE_CODE_OAUTH_TOKEN: ${CLAUDE_CODE_OAUTH_TOKEN:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       HOST: 0.0.0.0
