@@ -280,6 +280,8 @@ async function runGeminiLoop({ job, apiKey, systemPrompt, userPrompt }) {
   if (turns >= 40) job.resultado = (job.resultado || '') + '\n(Máximo de turnos alcanzado)';
 }
 
+const GROQ_MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
+
 // Agent loop para Groq (formato OpenAI-compatible).
 async function runGroqLoop({ job, apiKey, systemPrompt, userPrompt }) {
   const Groq = (await import('groq-sdk')).default;
@@ -293,7 +295,7 @@ async function runGroqLoop({ job, apiKey, systemPrompt, userPrompt }) {
 
   while (turns++ < 40) {
     const completion = await groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+      model: GROQ_MODEL,
       messages,
       tools: TOOLS_GROQ,
       tool_choice: 'auto',
@@ -338,7 +340,7 @@ function startJobLLM({ reporte, contexto, ahora }) {
 
   const job = { id, status: 'running', start: Date.now(), eventos: [], incidente: null, resultado: null, error: null };
   jobs.set(id, job);
-  const provLabel = prov === 'gemini' ? 'Google Gemini (gemini-2.0-flash)' : 'Groq (llama-3.3-70b)';
+  const provLabel = prov === 'gemini' ? 'Google Gemini (gemini-2.0-flash)' : `Groq (${GROQ_MODEL})`;
   job.eventos.push({ t: 0, texto: `Iniciando análisis con ${provLabel}…` });
 
   const apiKey = prov === 'gemini' ? getApiKey('gemini_api_key') : getApiKey('groq_api_key');
@@ -530,13 +532,13 @@ async function probarConexion() {
       const Groq = (await import('groq-sdk')).default;
       const groq = new Groq({ apiKey });
       const r = await groq.chat.completions.create({
-        model: 'llama-3.3-70b-versatile',
+        model: GROQ_MODEL,
         messages: [{ role: 'user', content: 'Responde solo con la palabra: ok' }],
-        max_tokens: 10,
+        max_tokens: 200,
       });
       const text = (r.choices?.[0]?.message?.content || '').trim();
       const ok = /ok/i.test(text);
-      return { ok, ms: Date.now() - t0, mensaje: ok ? 'Conexión con Groq correcta.' : `Respuesta inesperada: ${text.slice(0, 100)}` };
+      return { ok, ms: Date.now() - t0, mensaje: ok ? `Conexión con Groq (${GROQ_MODEL}) correcta.` : `Respuesta inesperada: ${text.slice(0, 100)}` };
     } catch (e) { return { ok: false, ms: Date.now() - t0, mensaje: traduceError(e.message) }; }
   }
 

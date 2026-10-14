@@ -4,7 +4,7 @@ import { post, del } from '../api.js';
 const PROVEEDORES = [
   { id: 'claude', label: 'Claude', badge: null, desc: 'Suscripción o API key de Anthropic' },
   { id: 'gemini', label: 'Gemini', badge: 'Gratis', desc: 'Google AI Studio · gemini-2.0-flash' },
-  { id: 'groq', label: 'Groq', badge: 'Gratis', desc: 'Llama-3.3-70B · alta velocidad' },
+  { id: 'groq', label: 'Groq', badge: 'Gratis', desc: 'OpenAI GPT-OSS 120B · alta velocidad' },
 ];
 
 const TIPO_CLAUDE = { api_key: 'API key de Anthropic', oauth_token: 'Token de suscripción' };
@@ -71,7 +71,7 @@ export default function Conexion({ estado, recarga }) {
               <dd>
                 <strong>{provLabel}</strong>
                 {provActivo === 'gemini' && <span className="pill acc" style={{ marginLeft: 8 }}>Gemini 2.0 Flash</span>}
-                {provActivo === 'groq' && <span className="pill acc" style={{ marginLeft: 8 }}>Llama-3.3-70B</span>}
+                {provActivo === 'groq' && <span className="pill acc" style={{ marginLeft: 8 }}>GPT-OSS 120B</span>}
               </dd>
               {provActivo === 'claude' && <>
                 <dt>Claude Code</dt>
@@ -196,7 +196,7 @@ export default function Conexion({ estado, recarga }) {
             <h3>Groq (gratis)</h3>
             <p>
               Crea una API key en <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">console.groq.com</a>,
-              selecciona "Groq" y pégala. Usa <code>llama-3.3-70b-versatile</code>.
+              selecciona "Groq" y pégala. Usa <code>openai/gpt-oss-120b</code>.
               Límite: 12k tokens/min — el análisis puede ser más lento.
             </p>
           </div>
