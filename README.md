@@ -24,9 +24,10 @@ Trabajo de Investigación Formativa (UNSA, Área de Sistemas): skills y un agent
 | Agente `agente-incidentes-brechas` | Coordina el ciclo completo y controla el plazo | Todo el ciclo | `.claude/agents/agente-incidentes-brechas.md` |
 | Comando `/gestionar-incidente` | Lanza el agente con un solo paso | — | `.claude/commands/gestionar-incidente.md` |
 | Base de conocimiento | Normativa peruana, estándares, severidad, taxonomía | — | `knowledge/` |
-| Interfaz web | Página local para pegar un reporte y ver el expediente con cuenta regresiva de 48 h | — | `web/` |
-| Casos de ejemplo | Ransomware, correo equivocado, laptop robada, phishing bloqueado, aviso de proveedor, acceso indebido | — | `examples/entradas/` |
-| Proyecto de demo | Clínica San Gabriel (ficticia): inventario, logs, políticas y app HCE para que el agente verifique los hechos | — | `demo/clinica-san-gabriel/` |
+| Interfaz web | Aplicación React local con Docker, conexión con su suscripción o API key y cuenta regresiva de 48 h | — | `web/` |
+| Casos de ejemplo | 9 escenarios simulados de la UNSA: ransomware en el Registro Académico, correo masivo a ingresantes, laptop de Bienestar, phishing bloqueado, aviso del proveedor del Campus Virtual, inyección SQL en admisión, cambio de notas, planilla en enlace público y DDoS | — | `examples/unsa/` |
+| Proyecto de demo | UNSA (escenario simulado): inventario, contactos, políticas y logs para que el agente verifique los hechos | — | `demo/unsa-base/`, `demo/unsa-ransomware/`, `demo/unsa-admision/`, `demo/unsa-notas/` |
+| Contextos subidos | Organizaciones cargadas desde la interfaz (inventario, logs, políticas); no se versionan | — | `contextos/` |
 | Permisos | El agente solo escribe en `salidas/` | — | `.claude/settings.json` |
 
 ## Flujo del agente
@@ -47,26 +48,26 @@ flowchart TD
 
 ## Cómo usarlo
 
-**Interfaz web** (la forma más simple): `npm start` y abrir http://localhost:3000. Ver [web/README.md](web/README.md) y la [guía de pruebas](examples/guia-de-pruebas.md).
+**Interfaz web** (la forma más simple): `docker compose up --build` (o `npm start`) y abrir http://localhost:3100. Ver [web/README.md](web/README.md) y la [guía de pruebas](examples/guia-de-pruebas.md).
 
 **Terminal:**
 
 Requiere [Claude Code](https://claude.com/claude-code). Abre una sesión en esta carpeta y usa:
 
 ```
-/gestionar-incidente examples/entradas/caso-01-ransomware-clinica.md
-/gestionar-incidente examples/entradas/caso-04-phishing-bloqueado.md
+/gestionar-incidente examples/unsa/unsa-01-ransomware-registro-academico.md contexto: demo/unsa-ransomware
+/gestionar-incidente examples/unsa/unsa-04-phishing-docentes-bloqueado.md
 ```
 
 **Demo con proyecto** (el agente verifica el reporte contra inventario, logs y políticas de una clínica ficticia):
 
 ```
-/gestionar-incidente examples/entradas/caso-01-ransomware-clinica.md contexto: demo/clinica-san-gabriel
+/gestionar-incidente examples/unsa/unsa-01-ransomware-registro-academico.md contexto: demo/unsa-ransomware
 ```
 
-Ver [demo/clinica-san-gabriel/README.md](demo/clinica-san-gabriel/README.md).
+Ver [demo/unsa-base/README.md](demo/unsa-base/README.md).
 
-También puedes invocar un skill por separado, por ejemplo: *"¿Esto es una brecha? Se nos perdió una USB con planillas"* o *"Redacta la notificación a la ANPD del incidente INC-20260929-ransomware-clinica"*.
+También puedes invocar un skill por separado, por ejemplo: *"¿Esto es una brecha? Se nos perdió una USB con planillas"* o *"Redacta la notificación a la ANPD del incidente INC-20261011-ransomware-sra"*.
 Los resultados quedan en `salidas/<ID-del-incidente>/`.
 
 ## Estructura del repositorio
@@ -79,7 +80,9 @@ Los resultados quedan en `salidas/<ID-del-incidente>/`.
 │   └── commands/        # comando /gestionar-incidente
 ├── knowledge/           # normativa peruana, estándares ISO/NIST, severidad, taxonomía
 ├── web/                 # interfaz web local (npm start)
-├── examples/entradas/   # 6 casos ficticios
+├── archivos-demo/       # reportes y contexto de ejemplo para probar la interfaz
+├── contextos/           # contextos subidos desde la interfaz (no se versionan)
+├── examples/unsa/       # 9 escenarios simulados de la UNSA (examples/entradas/: casos de pruebas anteriores)
 ├── demo/                # proyecto ficticio (clínica) con logs, inventario y app
 ├── salidas/             # expedientes generados (no se versionan)
 ├── docs/                # documentación por etapa del TIF

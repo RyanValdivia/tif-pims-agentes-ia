@@ -24,7 +24,7 @@
 Los skills se comunican mediante **archivos** en la carpeta del incidente:
 
 ```
-salidas/INC-20260929-ransomware-clinica/
+salidas/INC-20261011-ransomware-sra/
 ├── 00-informe.md                 ◄── agente (resumen de todo)
 ├── 01-ficha-incidente.md         ◄── triaje
 ├── 02-evaluacion-severidad.md    ◄── severidad (lee 01)

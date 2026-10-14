@@ -15,7 +15,7 @@
 
 ## Escenarios de demostración y resultado esperado
 
-### Caso 1 — Ransomware en una clínica (`caso-01-ransomware-clinica.md`)
+### Caso 1 — Ransomware en una clínica (caso retirado del repositorio; su evidencia sigue en `pruebas/evidencias/`)
 - Triaje: **brecha** de disponibilidad + probable confidencialidad (amenaza de publicación), categoría MAL, **P1**, entorno digital.
 - Severidad: DPC 4 (salud) · EI 1 · CB alta con intención maliciosa → **Muy alta**.
 - Notificación: **ANPD** (datos sensibles, gran número), **titulares** (perjuicio evidente) y **CNSD** (entorno digital). Hora límite 48 h desde el 29/09 a las 07:15.

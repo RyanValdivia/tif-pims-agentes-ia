@@ -4,7 +4,7 @@
 
 ## Cómo probar
 1. Abre Claude Code en la raíz del repositorio.
-2. Ejecuta un caso, por ejemplo: `/gestionar-incidente examples/entradas/caso-01-ransomware-clinica.md`.
+2. Ejecuta un caso, por ejemplo: `/gestionar-incidente examples/unsa/unsa-01-ransomware-registro-academico.md contexto: demo/unsa-ransomware`.
 3. Revisa la carpeta generada en `salidas/<ID>/`.
 4. Compárala con el resultado esperado en `docs/06-proyecto-agentico.md` y con la lista de verificación de abajo.
 5. Anota todo en `registro-pruebas.md`; guarda capturas y una copia de las salidas en `evidencias/<fecha>-<caso>/` (la carpeta `salidas/` no se versiona).
