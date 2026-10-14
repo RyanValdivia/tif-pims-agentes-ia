@@ -23,9 +23,11 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=traefik_proxy
-      - traefik.http.routers.incidentes.entrypoints=websecure
+      - traefik.http.routers.incidentes.entrypoints=web,websecure
+      - traefik.http.routers.incidentes.middlewares=tinyauth
       - traefik.http.routers.incidentes.rule=Host(`incidentes.rvaldiviase.com`)
       - traefik.http.routers.incidentes.tls=true
+      - traefik.http.routers.incidentes.tls.certresolver=cloudflare
       - traefik.http.services.incidentes.loadbalancer.server.port=3100
     networks:
       - traefik_proxy
