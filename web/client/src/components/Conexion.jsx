@@ -3,7 +3,7 @@ import { post, del } from '../api.js';
 
 const PROVEEDORES = [
   { id: 'claude', label: 'Claude', badge: null, desc: 'Suscripción o API key de Anthropic' },
-  { id: 'gemini', label: 'Gemini', badge: 'Gratis', desc: 'Google AI Studio · gemini-3.8-flash' },
+  { id: 'gemini', label: 'Gemini', badge: 'Gratis', desc: 'Google AI Studio · gemini-flash' },
   { id: 'groq', label: 'Groq', badge: 'Gratis', desc: 'OpenAI GPT-OSS 120B · alta velocidad' },
 ];
 
@@ -70,7 +70,7 @@ export default function Conexion({ estado, recarga }) {
               <dt>Proveedor activo</dt>
               <dd>
                 <strong>{provLabel}</strong>
-                {provActivo === 'gemini' && <span className="pill acc" style={{ marginLeft: 8 }}>Gemini 3.8 Flash</span>}
+                {provActivo === 'gemini' && <span className="pill acc" style={{ marginLeft: 8 }}>Gemini Flash</span>}
                 {provActivo === 'groq' && <span className="pill acc" style={{ marginLeft: 8 }}>GPT-OSS 120B</span>}
               </dd>
               {provActivo === 'claude' && <>
@@ -188,7 +188,7 @@ export default function Conexion({ estado, recarga }) {
             <h3>Gemini (gratis) <span className="pill acc">Recomendado sin tokens</span></h3>
             <p>
               Crea una API key en <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">AI Studio</a>,
-              selecciona "Gemini" arriba y pégala. Usa <code>gemini-3.8-flash</code>
+              selecciona "Gemini" arriba y pégala. Usa <code>gemini-flash-lite-latest</code>
               (1,500 req/día gratis, 1M tokens/min, contexto de 1M tokens).
             </p>
           </div>

@@ -235,7 +235,19 @@ const TOOLS_GROQ = [
   { type: 'function', function: { name: 'Grep', description: 'Busca líneas que contengan un patrón en los archivos del proyecto.', parameters: { type: 'object', properties: { pattern: { type: 'string', description: 'Texto o regex a buscar' }, path: { type: 'string', description: 'Subcarpeta donde buscar (opcional)' } }, required: ['pattern'] } } },
 ];
 
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-lite-latest';
+
+async function callGemini(ai, params) {
+  try {
+    return await ai.models.generateContent(params);
+  } catch (e) {
+    const msg = String(e.message || '');
+    if ((msg.includes('503') || msg.includes('high demand') || msg.includes('404')) && params.model !== 'gemini-flash-lite-latest') {
+      return await ai.models.generateContent({ ...params, model: 'gemini-flash-lite-latest' });
+    }
+    throw e;
+  }
+}
 
 // Agent loop para Google Gemini.
 async function runGeminiLoop({ job, apiKey, systemPrompt, userPrompt, abortCtrl }) {
@@ -247,7 +259,7 @@ async function runGeminiLoop({ job, apiKey, systemPrompt, userPrompt, abortCtrl 
 
   while (turns++ < 40) {
     if (job.cancelled) return;
-    const response = await ai.models.generateContent({
+    const response = await callGemini(ai, {
       model: GEMINI_MODEL,
       contents,
       config: { systemInstruction: systemPrompt, tools: TOOLS_GEMINI }
@@ -536,12 +548,12 @@ async function probarConexion() {
     try {
       const { GoogleGenAI } = await import('@google/genai');
       const ai = new GoogleGenAI({ apiKey });
-      const r = await ai.models.generateContent({
+      const r = await callGemini(ai, {
         model: GEMINI_MODEL,
         contents: [{ role: 'user', parts: [{ text: 'Responde solo con la palabra: ok' }] }]
       });
-      const text = (r.candidates?.[0]?.content?.parts?.find(p => p.text)?.text || r.text?.() || '').trim();
-      const ok = /^ok$/i.test(text);
+      const text = (r.candidates?.[0]?.content?.parts?.find(p => p.text)?.text || '').trim();
+      const ok = /ok/i.test(text);
       return { ok, ms: Date.now() - t0, mensaje: ok ? `Conexión con Gemini (${GEMINI_MODEL}) correcta.` : `Respuesta inesperada: ${text.slice(0, 100)}` };
     } catch (e) { return { ok: false, ms: Date.now() - t0, mensaje: traduceError(e.message) }; }
   }
