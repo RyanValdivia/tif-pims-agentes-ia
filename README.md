@@ -24,7 +24,8 @@ Trabajo de Investigación Formativa (UNSA, Área de Sistemas): skills y un agent
 | Agente `agente-incidentes-brechas` | Coordina el ciclo completo y controla el plazo | Todo el ciclo | `.claude/agents/agente-incidentes-brechas.md` |
 | Comando `/gestionar-incidente` | Lanza el agente con un solo paso | — | `.claude/commands/gestionar-incidente.md` |
 | Base de conocimiento | Normativa peruana, estándares, severidad, taxonomía | — | `knowledge/` |
-| Casos de ejemplo | Ransomware, correo equivocado, laptop robada, phishing bloqueado | — | `examples/entradas/` |
+| Interfaz web | Página local para pegar un reporte y ver el expediente con cuenta regresiva de 48 h | — | `web/` |
+| Casos de ejemplo | Ransomware, correo equivocado, laptop robada, phishing bloqueado, aviso de proveedor, acceso indebido | — | `examples/entradas/` |
 | Proyecto de demo | Clínica San Gabriel (ficticia): inventario, logs, políticas y app HCE para que el agente verifique los hechos | — | `demo/clinica-san-gabriel/` |
 | Permisos | El agente solo escribe en `salidas/` | — | `.claude/settings.json` |
 
@@ -45,6 +46,10 @@ flowchart TD
 ```
 
 ## Cómo usarlo
+
+**Interfaz web** (la forma más simple): `npm start` y abrir http://localhost:3000. Ver [web/README.md](web/README.md) y la [guía de pruebas](examples/guia-de-pruebas.md).
+
+**Terminal:**
 
 Requiere [Claude Code](https://claude.com/claude-code). Abre una sesión en esta carpeta y usa:
 
@@ -73,7 +78,8 @@ Los resultados quedan en `salidas/<ID-del-incidente>/`.
 │   ├── agents/          # agente de incidentes y brechas
 │   └── commands/        # comando /gestionar-incidente
 ├── knowledge/           # normativa peruana, estándares ISO/NIST, severidad, taxonomía
-├── examples/entradas/   # 4 casos ficticios
+├── web/                 # interfaz web local (npm start)
+├── examples/entradas/   # 6 casos ficticios
 ├── demo/                # proyecto ficticio (clínica) con logs, inventario y app
 ├── salidas/             # expedientes generados (no se versionan)
 ├── docs/                # documentación por etapa del TIF

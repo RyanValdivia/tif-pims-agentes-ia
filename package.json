@@ -1,0 +1,6 @@
+{
+  "name": "tif-agente-incidentes-brechas",
+  "private": true,
+  "description": "Interfaz web local del agente de incidentes y brechas de datos personales",
+  "scripts": { "start": "node web/server.js" }
+}
