@@ -17,7 +17,8 @@ COPY examples ./examples
 COPY demo ./demo
 COPY archivos-demo ./archivos-demo
 COPY web/server.js ./web/server.js
-COPY package.json ./package.json
+COPY package.json package-lock.json ./
+RUN npm install --omit=dev && npm cache clean --force
 COPY --from=ui /ui/dist ./web/client/dist
 RUN mkdir -p salidas contextos .ib-data /home/node/.claude \
  && chown -R node:node /app /home/node/.claude
