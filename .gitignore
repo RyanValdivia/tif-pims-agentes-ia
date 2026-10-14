@@ -10,3 +10,15 @@ salidas/*
 .DS_Store
 Thumbs.db
 .vscode/
+
+# Contextos subidos desde la interfaz (pueden contener datos reales de una organización)
+contextos/*
+!contextos/.gitkeep
+!contextos/README.md
+
+# Credenciales guardadas desde la interfaz y artefactos de build
+.ib-data/
+.env
+web/client/node_modules/
+web/client/dist/
+node_modules/

@@ -25,7 +25,8 @@ Convertir el reporte de un incidente en un **expediente completo y trazable** li
 - `knowledge/taxonomia-incidentes.md` — tipos, categorías, evento vs. incidente, prioridad.
 
 ## Contexto de la organización (opcional)
-Si el usuario indica una carpeta de contexto (ej. `contexto: demo/clinica-san-gabriel`), **verifica el reporte contra la evidencia del entorno antes de decidir**:
+Si el usuario indica una carpeta de contexto (ej. `contexto: demo/unsa-ransomware` o `contexto: contextos/mi-organizacion`, subida desde la interfaz), **verifica el reporte contra la evidencia del entorno antes de decidir**:
+- Primero haz `Glob` de la carpeta: puede no tener esta estructura exacta ni nombres estándar. Lee primero cualquier índice, `LEEME` o inventario, y trata cada archivo por su contenido.
 - `inventario/` → sistemas, tipos de datos, volúmenes de titulares, cifrado, respaldos y contactos (para el art. 34.2).
 - `logs/` → usa `Grep`/`Read` para reconstruir la línea de tiempo, confirmar la hora de toma de conocimiento y buscar señales de exfiltración o de persistencia.
 - `politicas/` y `app/` → causa raíz y brechas de control para el cierre.

@@ -4,6 +4,7 @@
       "Read(./knowledge/**)",
       "Read(./examples/**)",
       "Read(./demo/**)",
+      "Read(./contextos/**)",
       "Read(./salidas/**)",
       "Write(./salidas/**)",
       "Edit(./salidas/**)",
@@ -13,7 +14,8 @@
       "Read(./.env)",
       "Write(./knowledge/**)",
       "Write(./.claude/**)",
-      "Write(./demo/**)"
+      "Write(./demo/**)",
+      "Write(./contextos/**)"
     ]
   }
 }
