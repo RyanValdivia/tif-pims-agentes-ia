@@ -43,7 +43,14 @@ export default function Progreso({ jobId, onDone, onBack }) {
         <header>
           <h2>{corriendo && <span className="spin" />}{fallo ? 'No se pudo completar' : corriendo ? 'Analizando' : 'Listo'}{j ? ` · ${j.segundos} s` : ''}{j && j.incidente ? ` · ${j.incidente}` : ''}</h2>
           <span className="sp" />
-          {corriendo ? <button className="btn sm" onClick={() => del('/api/job/' + jobId)}>Cancelar</button> : <button className="btn sm" onClick={onBack}>Volver</button>}
+          {corriendo ? (
+            <button className="btn sm danger" onClick={async () => {
+              try { await del('/api/job/' + jobId); } catch {}
+              onBack();
+            }}>Cancelar</button>
+          ) : (
+            <button className="btn sm" onClick={onBack}>Volver</button>
+          )}
         </header>
         <div className="body">
           <p className="hint" style={{ margin: '0 0 10px' }}>{corriendo ? (ev.length ? ev[ev.length - 1].texto : 'Iniciando el agente…') : 'Análisis terminado.'}</p>

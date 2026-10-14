@@ -236,7 +236,7 @@ const TOOLS_GROQ = [
 ];
 
 // Agent loop para Google Gemini.
-async function runGeminiLoop({ job, apiKey, systemPrompt, userPrompt }) {
+async function runGeminiLoop({ job, apiKey, systemPrompt, userPrompt, abortCtrl }) {
   const { GoogleGenAI } = await import('@google/genai');
   const ai = new GoogleGenAI({ apiKey });
   const noteHandler = makeNoteHandler(job);
@@ -244,11 +244,13 @@ async function runGeminiLoop({ job, apiKey, systemPrompt, userPrompt }) {
   let turns = 0;
 
   while (turns++ < 40) {
+    if (job.cancelled) return;
     const response = await ai.models.generateContent({
       model: 'gemini-2.0-flash',
       contents,
       config: { systemInstruction: systemPrompt, tools: TOOLS_GEMINI }
     });
+    if (job.cancelled) return;
 
     const candidate = response.candidates?.[0];
     if (!candidate?.content?.parts) throw new Error('Gemini no devolvió respuesta válida.');
@@ -269,6 +271,7 @@ async function runGeminiLoop({ job, apiKey, systemPrompt, userPrompt }) {
     // Ejecutar tools y acumular respuestas
     const toolParts = [];
     for (const part of fcs) {
+      if (job.cancelled) return;
       const fc = part.functionCall;
       const args = fc.args || {};
       noteHandler(fc.name, args);
@@ -277,13 +280,13 @@ async function runGeminiLoop({ job, apiKey, systemPrompt, userPrompt }) {
     }
     contents.push({ role: 'user', parts: toolParts });
   }
-  if (turns >= 40) job.resultado = (job.resultado || '') + '\n(Máximo de turnos alcanzado)';
+  if (!job.cancelled && turns >= 40) job.resultado = (job.resultado || '') + '\n(Máximo de turnos alcanzado)';
 }
 
 const GROQ_MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
 
 // Agent loop para Groq (formato OpenAI-compatible).
-async function runGroqLoop({ job, apiKey, systemPrompt, userPrompt }) {
+async function runGroqLoop({ job, apiKey, systemPrompt, userPrompt, abortCtrl }) {
   const Groq = (await import('groq-sdk')).default;
   const groq = new Groq({ apiKey });
   const noteHandler = makeNoteHandler(job);
@@ -294,13 +297,15 @@ async function runGroqLoop({ job, apiKey, systemPrompt, userPrompt }) {
   let turns = 0;
 
   while (turns++ < 40) {
+    if (job.cancelled) return;
     const completion = await groq.chat.completions.create({
       model: GROQ_MODEL,
       messages,
       tools: TOOLS_GROQ,
       tool_choice: 'auto',
       max_tokens: 4096,
-    });
+    }, { signal: abortCtrl?.signal });
+    if (job.cancelled) return;
 
     const msg = completion.choices?.[0]?.message;
     if (!msg) throw new Error('Groq no devolvió respuesta válida.');
@@ -312,6 +317,7 @@ async function runGroqLoop({ job, apiKey, systemPrompt, userPrompt }) {
     }
 
     for (const tc of msg.tool_calls) {
+      if (job.cancelled) return;
       let args = {};
       try { args = JSON.parse(tc.function.arguments || '{}'); } catch {}
       noteHandler(tc.function.name, args);
@@ -319,7 +325,7 @@ async function runGroqLoop({ job, apiKey, systemPrompt, userPrompt }) {
       messages.push({ role: 'tool', tool_call_id: tc.id, content: JSON.stringify(result) });
     }
   }
-  if (turns >= 40) job.resultado = (job.resultado || '') + '\n(Máximo de turnos alcanzado)';
+  if (!job.cancelled && turns >= 40) job.resultado = (job.resultado || '') + '\n(Máximo de turnos alcanzado)';
 }
 
 // Lanza un job usando Gemini o Groq (sin CLI de Claude).
@@ -338,7 +344,8 @@ function startJobLLM({ reporte, contexto, ahora }) {
     'Léelo primero. Calcula el tiempo restante hasta la hora límite de 48 h con la fecha actual. Sigue tu flujo (ciclo ISO/IEC 27035), guarda todo en salidas/<ID>/ con ID = INC-<AAAAMMDD de la fecha del incidente>-<slug corto>, y termina mostrando clasificación, severidad, hora límite y tiempo restante, decisiones humanas pendientes y rutas generadas.',
   ].filter(Boolean).join('\n');
 
-  const job = { id, status: 'running', start: Date.now(), eventos: [], incidente: null, resultado: null, error: null };
+  const abortCtrl = new AbortController();
+  const job = { id, status: 'running', start: Date.now(), eventos: [], incidente: null, resultado: null, error: null, cancelled: false };
   jobs.set(id, job);
   const provLabel = prov === 'gemini' ? 'Google Gemini (gemini-2.0-flash)' : `Groq (${GROQ_MODEL})`;
   job.eventos.push({ t: 0, texto: `Iniciando análisis con ${provLabel}…` });
@@ -353,11 +360,23 @@ function startJobLLM({ reporte, contexto, ahora }) {
 
   const systemPrompt = buildSystemPrompt();
   const loopFn = prov === 'gemini' ? runGeminiLoop : runGroqLoop;
-  loopFn({ job, apiKey, systemPrompt, userPrompt: prompt })
-    .then(() => { job.status = 'done'; job.fin = Date.now(); })
-    .catch(e => { job.status = 'error'; job.error = traduceError(String(e.message || e)); job.fin = Date.now(); });
+  loopFn({ job, apiKey, systemPrompt, userPrompt: prompt, abortCtrl })
+    .then(() => { if (!job.cancelled) { job.status = 'done'; job.fin = Date.now(); } })
+    .catch(e => {
+      if (!job.cancelled) {
+        job.status = 'error';
+        job.error = traduceError(String(e.message || e));
+        job.fin = Date.now();
+      }
+    });
 
-  job.kill = () => { /* no child process to kill for LLM jobs */ };
+  job.kill = () => {
+    job.cancelled = true;
+    try { abortCtrl.abort(); } catch {}
+    job.status = 'error';
+    job.error = 'Análisis cancelado por el usuario.';
+    job.fin = Date.now();
+  };
   return job;
 }
 
@@ -660,7 +679,13 @@ http.createServer((req, res) => {
       return json(res, 200, { status: j.status, segundos: Math.round(((j.fin || Date.now()) - j.start) / 1000), eventos: j.eventos.slice(-300), incidente: j.incidente, resultado: j.resultado, error: j.error });
     }
     if (req.method === 'DELETE' && (m = p.match(/^\/api\/job\/(job\d+)$/))) {
-      const j = jobs.get(m[1]); if (j && j.kill) j.kill();
+      const j = jobs.get(m[1]);
+      if (j) {
+        if (j.kill) j.kill();
+        j.status = 'error';
+        j.error = 'Análisis cancelado por el usuario.';
+        j.fin = Date.now();
+      }
       return json(res, 200, { ok: true });
     }
     if (req.method === 'GET' && (m = p.match(/^\/api\/expediente\/([\w.-]+)$/))) {
